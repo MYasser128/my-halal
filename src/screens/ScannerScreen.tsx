@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Alert, TouchableOpacity, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import { useTranslation } from "react-i18next";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
@@ -13,6 +14,7 @@ interface ScannerScreenProps {
 }
 
 export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
+  const { t } = useTranslation();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [barcodeData, setBarcodeData] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
     return (
       <View style={scannerScreenStyles.loadingContainer}>
         <ActivityIndicator size="large" color="#22c55e" />
-        <Text style={scannerScreenStyles.loadingText}>Loading camera permissions...</Text>
+        <Text style={scannerScreenStyles.loadingText}>{t('scanner.loadingCameraPermissions')}</Text>
       </View>
     );
   }
@@ -35,12 +37,12 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
   if (!permission.granted) {
     return (
       <View style={scannerScreenStyles.permissionContainer}>
-        <Text style={scannerScreenStyles.permissionTitle}>Camera Permission Required</Text>
+        <Text style={scannerScreenStyles.permissionTitle}>{t('scanner.cameraPermissionRequired')}</Text>
         <Text style={scannerScreenStyles.permissionDescription}>
-          We need access to your camera to scan product barcodes and help you verify if products are halal.
+          {t('scanner.cameraPermissionDescription')}
         </Text>
         <TouchableOpacity style={scannerScreenStyles.permissionButton} onPress={requestPermission}>
-          <Text style={scannerScreenStyles.permissionButtonText}>Grant Permission</Text>
+          <Text style={scannerScreenStyles.permissionButtonText}>{t('scanner.grantPermission')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -51,18 +53,18 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
     const cleanBarcode = barcode.trim();
     
     if (!cleanBarcode) {
-      return { isValid: false, error: 'Please enter a barcode' };
+      return { isValid: false, error: t('scanner.pleaseEnterBarcode') };
     }
     
     // Check if barcode contains only digits
     if (!/^\d+$/.test(cleanBarcode)) {
-      return { isValid: false, error: 'Barcode must contain only numbers' };
+      return { isValid: false, error: t('scanner.barcodeMustContainOnlyNumbers') };
     }
     
     // Check length for common barcode types
     const length = cleanBarcode.length;
     if (length < 8 || length > 13) {
-      return { isValid: false, error: 'Barcode must be 8-13 digits long' };
+      return { isValid: false, error: t('scanner.barcodeMustBe8To13Digits') };
     }
     
     // Additional validation for specific barcode types
@@ -107,7 +109,7 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
       }
     } catch (error) {
       console.error("Error checking product:", error);
-      Alert.alert("Error", "Something went wrong while checking product");
+      Alert.alert(t('common.error'), t('scanner.somethingWentWrong'));
     }
   };
 
@@ -146,7 +148,7 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
       }
     } catch (error) {
       console.error("Error checking product:", error);
-      Alert.alert("Error", "Something went wrong while checking product");
+      Alert.alert(t('common.error'), t('scanner.somethingWentWrong'));
     }
   };
 
@@ -184,7 +186,7 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
   };
 
   const handleProductCreated = () => {
-    Alert.alert("Success", "Product has been added to the database!");
+      Alert.alert(t('common.success'), t('scanner.productAddedToDatabase'));
     handleBackToScanner();
   };
 
@@ -208,11 +210,11 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
         updatedAt: new Date(),
       });
 
-      Alert.alert("Reported", `Product reported as ${state}. Waiting for admin approval.`);
+      Alert.alert(t('common.success'), `${t('scanner.productReported')} ${state}. ${t('scanner.waitingForAdminApproval')}`);
       setNotFound(false);
     } catch (error) {
       console.error("Error reporting product:", error);
-      Alert.alert("Error", "Could not report product");
+      Alert.alert(t('common.error'), t('scanner.couldNotReportProduct'));
     }
   };
 
@@ -232,38 +234,38 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
       <View style={scannerScreenStyles.container}>
         <View style={scannerScreenStyles.header}>
           <TouchableOpacity style={scannerScreenStyles.backButton} onPress={handleBackToScanner}>
-            <Text style={scannerScreenStyles.backButtonText}>← Back</Text>
+            <Text style={scannerScreenStyles.backButtonText}>← {t('common.back')}</Text>
           </TouchableOpacity>
-          <Text style={scannerScreenStyles.headerTitle}>Product Not Found</Text>
+          <Text style={scannerScreenStyles.headerTitle}>{t('scanner.productNotFound')}</Text>
         </View>
         
         <View style={scannerScreenStyles.permissionContainer}>
           <View style={scannerScreenStyles.resultCard}>
-            <Text style={scannerScreenStyles.resultTitle}>Product Unknown</Text>
+            <Text style={scannerScreenStyles.resultTitle}>{t('scanner.productUnknown')}</Text>
             <Text style={scannerScreenStyles.resultDescription}>
-              This product is not in our database yet. You can help by reporting it to our community.
+              {t('scanner.productUnknownDescription')}
             </Text>
             
             <View style={scannerScreenStyles.unknownBadge}>
-              <Text style={scannerScreenStyles.unknownBadgeText}>Unknown Product</Text>
+              <Text style={scannerScreenStyles.unknownBadgeText}>{t('scanner.unknownProduct')}</Text>
             </View>
             
             <Text style={scannerScreenStyles.resultDescription}>
-              Barcode: {barcodeData}
+              {t('scanner.barcode')}: {barcodeData}
             </Text>
             
             <TouchableOpacity 
               style={scannerScreenStyles.reportButton} 
               onPress={handleReportProduct}
             >
-              <Text style={scannerScreenStyles.reportButtonText}>Report Product</Text>
+              <Text style={scannerScreenStyles.reportButtonText}>{t('scanner.reportProduct')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
               style={scannerScreenStyles.scanAgainButton} 
               onPress={handleScanAgain}
             >
-              <Text style={scannerScreenStyles.scanAgainButtonText}>Scan Again</Text>
+              <Text style={scannerScreenStyles.scanAgainButtonText}>{t('scanner.scanAgain')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -289,9 +291,9 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
     >
       <View style={scannerScreenStyles.header}>
         <TouchableOpacity style={scannerScreenStyles.backButton} onPress={onBack}>
-          <Text style={scannerScreenStyles.backButtonText}>← Back</Text>
+          <Text style={scannerScreenStyles.backButtonText}>← {t('common.back')}</Text>
         </TouchableOpacity>
-        <Text style={scannerScreenStyles.headerTitle}>Scan Product</Text>
+        <Text style={scannerScreenStyles.headerTitle}>{t('scanner.scanProduct')}</Text>
       </View>
       
       {!manualInputMode ? (
@@ -307,16 +309,16 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
 
           <View style={scannerScreenStyles.instructions}>
             <Text style={scannerScreenStyles.instructionsText}>
-              Position the barcode within the frame to scan
+              {t('scanner.positionBarcodeInFrame')}
             </Text>
           </View>
         </>
       ) : (
         <View style={scannerScreenStyles.manualInputContainer}>
           <View style={scannerScreenStyles.manualInputCard}>
-            <Text style={scannerScreenStyles.manualInputTitle}>Enter Barcode Manually</Text>
+            <Text style={scannerScreenStyles.manualInputTitle}>{t('scanner.enterBarcodeManually')}</Text>
             <Text style={scannerScreenStyles.manualInputDescription}>
-              Type the barcode number if the camera scan fails or the barcode is damaged
+              {t('scanner.enterBarcodeDescription')}
             </Text>
             
             <View style={scannerScreenStyles.inputContainer}>
@@ -330,7 +332,7 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
                   setManualBarcode(text);
                   setBarcodeError('');
                 }}
-                placeholder="Enter barcode number"
+                placeholder={t('scanner.enterBarcodeNumber')}
                 placeholderTextColor="#9ca3af"
                 keyboardType="numeric"
                 maxLength={13}
@@ -345,7 +347,7 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
               style={scannerScreenStyles.submitButton} 
               onPress={handleManualBarcodeSubmit}
             >
-              <Text style={scannerScreenStyles.submitButtonText}>Verify Product</Text>
+              <Text style={scannerScreenStyles.submitButtonText}>{t('scanner.verifyProduct')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -357,7 +359,7 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
           onPress={handleToggleManualInput}
         >
           <Text style={scannerScreenStyles.toggleButtonText}>
-            {manualInputMode ? 'Use Camera' : 'Enter Manually'}
+            {manualInputMode ? t('scanner.useCamera') : t('scanner.enterManually')}
           </Text>
         </TouchableOpacity>
       </View>

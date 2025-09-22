@@ -25,15 +25,26 @@ export const loginScreenStyles = StyleSheet.create({
     marginBottom: spacing[8],
   },
   
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: spacing[4],
+  },
+  
   logo: {
     width: 80,
     height: 80,
     backgroundColor: colors.primary[500],
     borderRadius: borderRadius.full,
-    marginBottom: spacing[4],
     alignItems: 'center',
     justifyContent: 'center',
     ...shadows.md,
+  },
+  
+  languageSwitcher: {
+    // Styles will be handled by the component
   },
   
   logoText: {

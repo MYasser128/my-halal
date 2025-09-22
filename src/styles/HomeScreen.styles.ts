@@ -11,17 +11,24 @@ export const homeScreenStyles = StyleSheet.create({
   // Header styles
   header: {
     backgroundColor: colors.primary[500],
-    paddingTop: spacing[12],
+    paddingTop: spacing[16],
     paddingBottom: spacing[8],
     paddingHorizontal: spacing[6],
     borderBottomLeftRadius: borderRadius['2xl'],
     borderBottomRightRadius: borderRadius['2xl'],
+    position: "relative",
     ...shadows.lg,
   },
   
   headerContent: {
     alignItems: 'center',
     position: 'relative',
+  },
+  
+  burgerMenu: {
+    position: 'absolute',
+    top: 10,
+    zIndex: 10,
   },
   
   title: {

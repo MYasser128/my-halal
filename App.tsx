@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, I18nManager } from 'react-native';
 import { User } from 'firebase/auth';
 import { onAuthStateChange } from './src/services/auth';
 import { LoginScreen } from './src/screens/LoginScreen';
@@ -8,6 +8,8 @@ import { RegisterScreen } from './src/screens/RegisterScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import ScannerScreen from './src/screens/ScannerScreen';
 import { AdminScreen } from './src/screens/AdminScreen';
+import './src/i18n'; // Initialize i18n
+import { isRTL } from './src/i18n';
 
 type AuthScreen = 'login' | 'register';
 type AppScreen = 'home' | 'scanner' | 'admin';
@@ -17,6 +19,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('home');
+  const [currentLanguage, setCurrentLanguage] = useState('it');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChange(async (user) => {
@@ -36,6 +39,13 @@ export default function App() {
 
     return unsubscribe;
   }, []);
+
+  // Handle RTL support
+  useEffect(() => {
+    const isRTLMode = isRTL(currentLanguage);
+    I18nManager.allowRTL(isRTLMode);
+    I18nManager.forceRTL(isRTLMode);
+  }, [currentLanguage]);
 
   const handleLogin = async (user: User) => {
     setUser(user);

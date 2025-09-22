@@ -10,8 +10,10 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { register, createUserProfile, getUserProfile } from '../services/auth';
 import { User } from 'firebase/auth';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { registerScreenStyles } from '../styles/RegisterScreen.styles';
 
 interface RegisterScreenProps {
@@ -20,6 +22,7 @@ interface RegisterScreenProps {
 }
 
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSwitchToLogin }) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -28,17 +31,17 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
 
   const handleRegister = async () => {
     if (!email || !password || !confirmPassword || !displayName) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('auth.pleaseFillAllFields'));
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert(t('common.error'), t('auth.passwordsDoNotMatchError'));
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      Alert.alert(t('common.error'), t('auth.passwordMustBeAtLeast6'));
       return;
     }
 
@@ -51,7 +54,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
       const userWithProfile = await getUserProfile(userCredential.user);
       onRegister(userWithProfile);
     } catch (error: any) {
-      Alert.alert('Registration Failed', error.message || 'An error occurred');
+      Alert.alert(t('auth.registrationFailed'), error.message || t('auth.anErrorOccurred'));
     } finally {
       setLoading(false);
     }
@@ -68,33 +71,36 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
       <ScrollView contentContainerStyle={registerScreenStyles.scrollContainer}>
         <View style={registerScreenStyles.formContainer}>
           <View style={registerScreenStyles.header}>
-            <View style={registerScreenStyles.logo}>
-              <Text style={registerScreenStyles.logoText}>🕌</Text>
+            <View style={registerScreenStyles.headerTop}>
+              <View style={registerScreenStyles.logo}>
+                <Text style={registerScreenStyles.logoText}>🕌</Text>
+              </View>
+              <LanguageSwitcher style={registerScreenStyles.languageSwitcher} />
             </View>
-            <Text style={registerScreenStyles.title}>Create Account</Text>
-            <Text style={registerScreenStyles.subtitle}>Sign up to get started</Text>
+            <Text style={registerScreenStyles.title}>{t('auth.createAccount')}</Text>
+            <Text style={registerScreenStyles.subtitle}>{t('auth.signUpToGetStarted')}</Text>
           </View>
 
           <View style={registerScreenStyles.form}>
             <View style={registerScreenStyles.inputContainer}>
-              <Text style={registerScreenStyles.label}>Full Name</Text>
+              <Text style={registerScreenStyles.label}>{t('auth.fullName')}</Text>
               <TextInput
                 style={registerScreenStyles.input}
                 value={displayName}
                 onChangeText={setDisplayName}
-                placeholder="Enter your full name"
+                placeholder={t('auth.enterFullName')}
                 placeholderTextColor="#9CA3AF"
                 autoCapitalize="words"
               />
             </View>
 
             <View style={registerScreenStyles.inputContainer}>
-              <Text style={registerScreenStyles.label}>Email</Text>
+              <Text style={registerScreenStyles.label}>{t('auth.email')}</Text>
               <TextInput
                 style={registerScreenStyles.input}
                 value={email}
                 onChangeText={setEmail}
-                placeholder="Enter your email"
+                placeholder={t('auth.enterEmail')}
                 placeholderTextColor="#9CA3AF"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -103,12 +109,12 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
             </View>
 
             <View style={registerScreenStyles.inputContainer}>
-              <Text style={registerScreenStyles.label}>Password</Text>
+              <Text style={registerScreenStyles.label}>{t('auth.password')}</Text>
               <TextInput
                 style={registerScreenStyles.input}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="Enter your password"
+                placeholder={t('auth.enterPassword')}
                 placeholderTextColor="#9CA3AF"
                 secureTextEntry
                 autoCapitalize="none"
@@ -116,21 +122,21 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
               
               {password.length > 0 && (
                 <View style={registerScreenStyles.passwordRequirements}>
-                  <Text style={registerScreenStyles.passwordRequirementsTitle}>Password Requirements:</Text>
+                  <Text style={registerScreenStyles.passwordRequirementsTitle}>{t('auth.passwordRequirements')}</Text>
                   <Text style={isPasswordValid ? registerScreenStyles.passwordRequirementValid : registerScreenStyles.passwordRequirementInvalid}>
-                    • At least 6 characters {isPasswordValid ? '✓' : '✗'}
+                    {t('auth.atLeast6Characters')} {isPasswordValid ? '✓' : '✗'}
                   </Text>
                 </View>
               )}
             </View>
 
             <View style={registerScreenStyles.inputContainer}>
-              <Text style={registerScreenStyles.label}>Confirm Password</Text>
+              <Text style={registerScreenStyles.label}>{t('auth.confirmPassword')}</Text>
               <TextInput
                 style={registerScreenStyles.input}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                placeholder="Confirm your password"
+                placeholder={t('auth.confirmYourPassword')}
                 placeholderTextColor="#9CA3AF"
                 secureTextEntry
                 autoCapitalize="none"
@@ -138,7 +144,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
               
               {confirmPassword.length > 0 && (
                 <Text style={doPasswordsMatch ? registerScreenStyles.passwordRequirementValid : registerScreenStyles.passwordRequirementInvalid}>
-                  {doPasswordsMatch ? '✓ Passwords match' : '✗ Passwords do not match'}
+                  {doPasswordsMatch ? t('auth.passwordsMatch') : t('auth.passwordsDoNotMatch')}
                 </Text>
               )}
             </View>
@@ -151,26 +157,26 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
               {loading ? (
                 <View style={registerScreenStyles.loadingContainer}>
                   <ActivityIndicator color="#ffffff" size="small" />
-                  <Text style={registerScreenStyles.loadingText}>Creating Account...</Text>
+                  <Text style={registerScreenStyles.loadingText}>{t('auth.creatingAccount')}</Text>
                 </View>
               ) : (
-                <Text style={registerScreenStyles.buttonText}>Sign Up</Text>
+                <Text style={registerScreenStyles.buttonText}>{t('auth.signUp')}</Text>
               )}
             </TouchableOpacity>
 
             <View style={registerScreenStyles.termsContainer}>
               <Text style={registerScreenStyles.termsText}>
-                By signing up, you agree to our{' '}
-                <Text style={registerScreenStyles.termsLink}>Terms of Service</Text>
-                {' '}and{' '}
-                <Text style={registerScreenStyles.termsLink}>Privacy Policy</Text>
+                {t('auth.bySigningUp')}{' '}
+                <Text style={registerScreenStyles.termsLink}>{t('auth.termsOfService')}</Text>
+                {' '}{t('auth.and')}{' '}
+                <Text style={registerScreenStyles.termsLink}>{t('auth.privacyPolicy')}</Text>
               </Text>
             </View>
 
             <View style={registerScreenStyles.switchContainer}>
-              <Text style={registerScreenStyles.switchText}>Already have an account? </Text>
+              <Text style={registerScreenStyles.switchText}>{t('auth.alreadyHaveAccount')} </Text>
               <TouchableOpacity onPress={onSwitchToLogin}>
-                <Text style={registerScreenStyles.switchLink}>Sign In</Text>
+                <Text style={registerScreenStyles.switchLink}>{t('auth.signIn')}</Text>
               </TouchableOpacity>
             </View>
           </View>

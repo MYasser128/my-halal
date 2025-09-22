@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { productDetailStyles } from '../styles/ProductDetail.styles';
@@ -36,6 +37,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   onBack, 
   onScanAgain 
 }) => {
+  const { t } = useTranslation();
   const [product, setProduct] = useState<ProductData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,11 +65,11 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
           id: docSnap.id,
         });
       } else {
-        setError('Product not found in database');
+        setError(t('scanner.productNotFound'));
       }
     } catch (error) {
       console.error('Error loading product:', error);
-      setError('Failed to load product information');
+      setError(t('scanner.somethingWentWrong'));
     } finally {
       setLoading(false);
     }
@@ -87,11 +89,11 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   const getStatusText = (status: string) => {
     switch (status) {
       case 'halal':
-        return 'HALAL';
+        return t('product.halal').toUpperCase();
       case 'haram':
-        return 'HARAM';
+        return t('product.haram').toUpperCase();
       default:
-        return 'HARAM'; // Default to haram if status is unclear
+        return t('product.haram').toUpperCase(); // Default to haram if status is unclear
     }
   };
 
@@ -110,14 +112,14 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
         <View style={productDetailStyles.header}>
           <View style={productDetailStyles.headerContent}>
             <TouchableOpacity style={productDetailStyles.backButton} onPress={onBack}>
-              <Text style={productDetailStyles.backButtonText}>← Back</Text>
+              <Text style={productDetailStyles.backButtonText}>← {t('common.back')}</Text>
             </TouchableOpacity>
-            <Text style={productDetailStyles.headerTitle}>Product Details</Text>
+            <Text style={productDetailStyles.headerTitle}>{t('product.productName')}</Text>
           </View>
         </View>
         <View style={productDetailStyles.loadingContainer}>
           <ActivityIndicator size="large" color="#22c55e" />
-          <Text style={productDetailStyles.loadingText}>Loading product information...</Text>
+          <Text style={productDetailStyles.loadingText}>{t('common.loading')}</Text>
         </View>
       </View>
     );
@@ -129,21 +131,21 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
         <View style={productDetailStyles.header}>
           <View style={productDetailStyles.headerContent}>
             <TouchableOpacity style={productDetailStyles.backButton} onPress={onBack}>
-              <Text style={productDetailStyles.backButtonText}>← Back</Text>
+              <Text style={productDetailStyles.backButtonText}>← {t('common.back')}</Text>
             </TouchableOpacity>
-            <Text style={productDetailStyles.headerTitle}>Product Details</Text>
+            <Text style={productDetailStyles.headerTitle}>{t('product.productName')}</Text>
           </View>
         </View>
         <View style={productDetailStyles.content}>
           <View style={productDetailStyles.emptyContainer}>
             <Text style={productDetailStyles.emptyIcon}>❌</Text>
-            <Text style={productDetailStyles.emptyTitle}>Product Not Found</Text>
+            <Text style={productDetailStyles.emptyTitle}>{t('scanner.productNotFound')}</Text>
             <Text style={productDetailStyles.emptyText}>
-              This product is not available in our database. You can help by adding it to our collection.
+              {t('scanner.productUnknownDescription')}
             </Text>
             <View style={productDetailStyles.actionButtons}>
               <TouchableOpacity style={productDetailStyles.primaryButton} onPress={onScanAgain}>
-                <Text style={productDetailStyles.primaryButtonText}>Scan Another Product</Text>
+                <Text style={productDetailStyles.primaryButtonText}>{t('scanner.scanAgain')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -157,9 +159,9 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
       <View style={productDetailStyles.header}>
         <View style={productDetailStyles.headerContent}>
           <TouchableOpacity style={productDetailStyles.backButton} onPress={onBack}>
-            <Text style={productDetailStyles.backButtonText}>← Back</Text>
+            <Text style={productDetailStyles.backButtonText}>← {t('common.back')}</Text>
           </TouchableOpacity>
-          <Text style={productDetailStyles.headerTitle}>Product Details</Text>
+          <Text style={productDetailStyles.headerTitle}>{t('product.productName')}</Text>
         </View>
       </View>
 
@@ -168,7 +170,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
         <View style={productDetailStyles.productCard}>
           <View style={productDetailStyles.productHeader}>
             <Text style={productDetailStyles.productName}>
-              {product.name || 'Unknown Product'}
+              {product.name || t('product.unknown')}
             </Text>
             <View style={[productDetailStyles.statusBadge, getStatusColor(product.halalStates?.default || 'unknown')]}>
               <Text style={productDetailStyles.statusText}>
@@ -179,41 +181,41 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
 
           <View style={productDetailStyles.productDetails}>
             <View style={productDetailStyles.detailRow}>
-              <Text style={productDetailStyles.detailLabel}>Barcode:</Text>
+              <Text style={productDetailStyles.detailLabel}>{t('product.barcode')}:</Text>
               <Text style={productDetailStyles.detailValue}>{product.barcode}</Text>
             </View>
             
             {product.manufacturer && (
               <View style={productDetailStyles.detailRow}>
-                <Text style={productDetailStyles.detailLabel}>Manufacturer:</Text>
+                <Text style={productDetailStyles.detailLabel}>{t('product.brand')}:</Text>
                 <Text style={productDetailStyles.detailValue}>{product.manufacturer}</Text>
               </View>
             )}
             
             {product.country && (
               <View style={productDetailStyles.detailRow}>
-                <Text style={productDetailStyles.detailLabel}>Country:</Text>
+                <Text style={productDetailStyles.detailLabel}>{t('product.country')}:</Text>
                 <Text style={productDetailStyles.detailValue}>{product.country}</Text>
               </View>
             )}
             
             {product.category && (
               <View style={productDetailStyles.detailRow}>
-                <Text style={productDetailStyles.detailLabel}>Category:</Text>
+                <Text style={productDetailStyles.detailLabel}>{t('product.category')}:</Text>
                 <Text style={productDetailStyles.detailValue}>{product.category}</Text>
               </View>
             )}
             
             {product.lastUpdated && (
               <View style={productDetailStyles.detailRow}>
-                <Text style={productDetailStyles.detailLabel}>Last Updated:</Text>
+                <Text style={productDetailStyles.detailLabel}>{t('product.lastUpdated')}:</Text>
                 <Text style={productDetailStyles.detailValue}>{formatDate(product.lastUpdated)}</Text>
               </View>
             )}
           </View>
 
           <View style={productDetailStyles.barcodeSection}>
-            <Text style={productDetailStyles.barcodeLabel}>Barcode Number</Text>
+            <Text style={productDetailStyles.barcodeLabel}>{t('product.barcode')}</Text>
             <Text style={productDetailStyles.barcodeValue}>{product.barcode}</Text>
           </View>
         </View>
@@ -221,7 +223,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
         {/* Description */}
         {product.description && (
           <View style={productDetailStyles.productCard}>
-            <Text style={productDetailStyles.sectionTitle}>Description</Text>
+            <Text style={productDetailStyles.sectionTitle}>{t('product.description')}</Text>
             <Text style={productDetailStyles.detailValue}>{product.description}</Text>
           </View>
         )}
@@ -229,7 +231,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
         {/* Ingredients */}
         {product.ingredients && product.ingredients.length > 0 && (
           <View style={productDetailStyles.ingredientsSection}>
-            <Text style={productDetailStyles.sectionTitle}>Ingredients</Text>
+            <Text style={productDetailStyles.sectionTitle}>{t('product.ingredients')}</Text>
             <View style={productDetailStyles.ingredientsList}>
               {product.ingredients.map((ingredient, index) => (
                 <Text key={index} style={productDetailStyles.ingredientItem}>
@@ -243,15 +245,15 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
         {/* Certifications */}
         {product.certifications && product.certifications.length > 0 && (
           <View style={productDetailStyles.certificationSection}>
-            <Text style={productDetailStyles.sectionTitle}>Certifications</Text>
+            <Text style={productDetailStyles.sectionTitle}>{t('product.certification')}</Text>
             {product.certifications.map((cert, index) => (
               <View key={index} style={productDetailStyles.certificationCard}>
                 <Text style={productDetailStyles.certificationTitle}>{cert.name}</Text>
                 <Text style={productDetailStyles.certificationDetails}>
-                  Issued by: {cert.issuer}
+                  {t('product.issuedBy')}: {cert.issuer}
                 </Text>
                 <Text style={productDetailStyles.certificationDate}>
-                  Date: {formatDate(cert.date)} • Status: {cert.valid ? 'Valid' : 'Expired'}
+                  {t('product.date')}: {formatDate(cert.date)} • {t('product.status')}: {cert.valid ? t('product.valid') : t('product.expired')}
                 </Text>
               </View>
             ))}
@@ -261,10 +263,10 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
         {/* Action Buttons */}
         <View style={productDetailStyles.actionButtons}>
           <TouchableOpacity style={productDetailStyles.primaryButton} onPress={onScanAgain}>
-            <Text style={productDetailStyles.primaryButtonText}>Scan Another Product</Text>
+            <Text style={productDetailStyles.primaryButtonText}>{t('scanner.scanAgain')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={productDetailStyles.secondaryButton} onPress={onBack}>
-            <Text style={productDetailStyles.secondaryButtonText}>Back to Scanner</Text>
+            <Text style={productDetailStyles.secondaryButtonText}>{t('common.back')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
