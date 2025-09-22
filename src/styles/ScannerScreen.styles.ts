@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { colors, typography, spacing, borderRadius, shadows } from './theme';
-import { textStyles, buttonStyles, badgeStyles } from './common';
+import { textStyles, buttonStyles, badgeStyles, inputStyles } from './common';
 
 export const scannerScreenStyles = StyleSheet.create({
   container: {
@@ -290,5 +290,91 @@ export const scannerScreenStyles = StyleSheet.create({
     color: colors.error,
     fontWeight: typography.fontWeight.medium,
     textAlign: 'center',
+  },
+  
+  // Manual input styles
+  manualInputContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing[6],
+    backgroundColor: colors.neutral[900],
+  },
+  
+  manualInputCard: {
+    backgroundColor: colors.background.primary,
+    padding: spacing[8],
+    borderRadius: borderRadius.xl,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 400,
+    ...shadows.lg,
+  },
+  
+  manualInputTitle: {
+    ...textStyles.h3,
+    textAlign: 'center',
+    marginBottom: spacing[3],
+    color: colors.text.primary,
+  },
+  
+  manualInputDescription: {
+    ...textStyles.bodySecondary,
+    textAlign: 'center',
+    marginBottom: spacing[6],
+    lineHeight: typography.lineHeight.relaxed * typography.fontSize.base,
+  },
+  
+  inputContainer: {
+    width: '100%',
+    marginBottom: spacing[6],
+  },
+  
+  barcodeInput: {
+    ...inputStyles.input,
+    textAlign: 'center',
+    fontSize: typography.fontSize.lg,
+    letterSpacing: 1,
+    fontFamily: 'monospace',
+  },
+  
+  barcodeInputError: {
+    ...inputStyles.inputError,
+  },
+  
+  submitButton: {
+    ...buttonStyles.primary,
+    width: '100%',
+    paddingVertical: spacing[5],
+  },
+  
+  submitButtonText: {
+    ...buttonStyles.primaryText,
+    fontSize: typography.fontSize.lg,
+  },
+  
+  // Bottom actions
+  bottomActions: {
+    position: 'absolute',
+    bottom: spacing[6],
+    left: spacing[5],
+    right: spacing[5],
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  
+  toggleButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[6],
+    borderRadius: borderRadius.full,
+    borderWidth: 2,
+    borderColor: colors.primary[500],
+  },
+  
+  toggleButtonText: {
+    ...textStyles.button,
+    color: colors.text.inverse,
+    fontSize: typography.fontSize.base,
   },
 });
