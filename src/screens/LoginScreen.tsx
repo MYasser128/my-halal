@@ -26,6 +26,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSwitchToReg
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -83,15 +88,27 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSwitchToReg
 
             <View style={loginScreenStyles.inputContainer}>
               <Text style={loginScreenStyles.label}>{t('auth.password')}</Text>
-              <TextInput
-                style={loginScreenStyles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder={t('auth.enterPassword')}
-                placeholderTextColor="#9CA3AF"
-                secureTextEntry
-                autoCapitalize="none"
-              />
+              <View style={loginScreenStyles.passwordInputContainer}>
+                <TextInput
+                  style={loginScreenStyles.passwordInput}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder={t('auth.enterPassword')}
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                />
+                <TouchableOpacity
+                  style={loginScreenStyles.passwordToggle}
+                  onPress={togglePasswordVisibility}
+                  accessibilityLabel={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                  accessibilityRole="button"
+                >
+                  <Text style={loginScreenStyles.passwordToggleText}>
+                    {showPassword ? '🙈' : '👁️'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <TouchableOpacity

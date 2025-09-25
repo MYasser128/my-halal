@@ -46,7 +46,9 @@
     "termsOfService": "شروط الخدمة",
     "privacyPolicy": "سياسة الخصوصية",
     "bySigningUp": "بالتسجيل، فإنك توافق على",
-    "and": "و"
+    "and": "و",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور"
   },
   "home": {
     "title": "حلالي",

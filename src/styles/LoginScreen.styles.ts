@@ -81,6 +81,31 @@ export const loginScreenStyles = StyleSheet.create({
   input: {
     ...inputStyles.input,
   },
+
+  // Password input with toggle
+  passwordInputContainer: {
+    position: 'relative',
+    
+  },
+
+  passwordInput: {
+    ...inputStyles.input,
+    paddingRight: 50, // Make room for the toggle button
+  },
+
+  passwordToggle: {
+    position: 'absolute',
+    right: 12,
+    top: '50%',
+    transform: [{ translateY: '-50%' }], // Center vertically
+    padding: 8,
+    zIndex: 1,
+  },
+
+  passwordToggleText: {
+    fontSize: 18,
+    color: colors.text.secondary,
+  },
   
   inputFocused: {
     ...inputStyles.inputFocused,

@@ -46,7 +46,9 @@
     "termsOfService": "Terms of Service",
     "privacyPolicy": "Privacy Policy",
     "bySigningUp": "By signing up, you agree to our",
-    "and": "and"
+    "and": "and",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "home": {
     "title": "My Halal",
