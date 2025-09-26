@@ -8,6 +8,7 @@ import {
   Dimensions,
   Modal,
   TouchableWithoutFeedback,
+  Image,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { User } from 'firebase/auth';
@@ -127,6 +128,15 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
       borderBottomWidth: 1,
       borderBottomColor: '#e9ecef',
       justifyContent: 'space-between',
+    },
+    sidebarTitleContainer: {
+      flexDirection: isCurrentRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    sidebarLogo: {
+      width: 32,
+      height: 32,
     },
     sidebarTitle: {
       fontSize: 20,
@@ -282,7 +292,14 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
                 ]}
               >
                 <View style={styles.sidebarHeader}>
-                  <Text style={styles.sidebarTitle}>My Halal</Text>
+                  <View style={styles.sidebarTitleContainer}>
+                    <Image 
+                      source={require('../../assets/logo.png')} 
+                      style={styles.sidebarLogo}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.sidebarTitle}>My Halal</Text>
+                  </View>
                   <TouchableOpacity style={styles.closeButton} onPress={closeSidebar}>
                     <Text style={styles.closeIcon}>✕</Text>
                   </TouchableOpacity>

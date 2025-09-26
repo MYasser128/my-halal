@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { register, createUserProfile, getUserProfile } from '../services/auth';
@@ -79,7 +80,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
               <LanguageSwitcher style={registerScreenStyles.languageSwitcher} />
             </View>
             <View style={registerScreenStyles.logo}>
-              <Text style={registerScreenStyles.logoText}>🕌</Text>
+              <Image 
+                source={require('../../assets/logo.png')} 
+                style={registerScreenStyles.logoImage}
+                resizeMode="contain"
+              />
             </View>
             <Text style={registerScreenStyles.title}>{t('auth.createAccount')}</Text>
             <Text style={registerScreenStyles.subtitle}>{t('auth.signUpToGetStarted')}</Text>

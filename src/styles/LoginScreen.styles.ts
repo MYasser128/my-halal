@@ -46,23 +46,22 @@ export const loginScreenStyles = StyleSheet.create({
   },
   
   logo: {
-    width: 80,
-    height: 80,
-    backgroundColor: colors.primary[500],
-    borderRadius: borderRadius.full,
+    width: 100,
+    height: 100,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.md,
+    marginBottom: spacing[4],
+  },
+  
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   
   languageSwitcher: {
     // Styles will be handled by the component
   },
   
-  logoText: {
-    ...textStyles.h2,
-    color: colors.text.inverse,
-  },
   
   title: {
     ...textStyles.h1,

@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  Image,
 } from 'react-native';
 import { User } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
@@ -46,6 +47,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           ]} 
         />
         <View style={homeScreenStyles.headerContent}>
+          <View style={homeScreenStyles.logoContainer}>
+            <Image 
+              source={require('../../assets/logo.png')} 
+              style={homeScreenStyles.logoImage}
+              resizeMode="contain"
+            />
+          </View>
           <Text style={homeScreenStyles.title}>My Halal</Text>
           <Text style={homeScreenStyles.subtitle}>
             {user ? `${t('home.welcome')}, ${user.displayName || user.email}!` : t('home.welcomeGuest')}

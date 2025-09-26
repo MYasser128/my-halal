@@ -25,6 +25,19 @@ export const homeScreenStyles = StyleSheet.create({
     position: 'relative',
   },
   
+  logoContainer: {
+    width: 80,
+    height: 80,
+    marginBottom: spacing[4],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  
+  logoImage: {
+    width: '100%',
+    height: '100%',
+  },
+  
   burgerMenu: {
     position: 'absolute',
     top: 10,

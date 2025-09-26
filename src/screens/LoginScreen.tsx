@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { login, register, createUserProfile, getUserProfile } from '../services/auth';
@@ -70,7 +71,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSwitchToReg
               <LanguageSwitcher style={loginScreenStyles.languageSwitcher} />
             </View>
             <View style={loginScreenStyles.logo}>
-              <Text style={loginScreenStyles.logoText}>🕌</Text>
+              <Image 
+                source={require('../../assets/logo.png')} 
+                style={loginScreenStyles.logoImage}
+                resizeMode="contain"
+              />
             </View>
             <Text style={loginScreenStyles.title}>{t('auth.welcomeBack')}</Text>
             <Text style={loginScreenStyles.subtitle}>{t('auth.signInToAccount')}</Text>
