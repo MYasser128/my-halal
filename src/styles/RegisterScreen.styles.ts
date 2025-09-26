@@ -32,6 +32,18 @@ export const registerScreenStyles = StyleSheet.create({
     width: '100%',
     marginBottom: spacing[4],
   },
+
+  backButton: {
+    padding: spacing[2],
+    borderRadius: borderRadius.base,
+    backgroundColor: colors.neutral[100],
+  },
+
+  backButtonText: {
+    ...textStyles.body,
+    color: colors.primary[500],
+    fontWeight: typography.fontWeight.medium,
+  },
   
   logo: {
     width: 80,

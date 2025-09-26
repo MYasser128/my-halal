@@ -53,14 +53,23 @@
   "home": {
     "title": "My Halal",
     "welcome": "Benvenuto",
+    "welcomeGuest": "Benvenuto, Ospite!",
     "welcomeToApp": "🕌 Benvenuto nell'App My Halal",
     "welcomeDescription": "Il tuo compagno di fiducia per verificare i prodotti halal. Scansiona i codici a barre, controlla gli ingredienti e fai scelte informate.",
     "quickActions": "Azioni Rapide",
     "scanProduct": "📱 Scansiona Prodotto",
+    "loginToScan": "🔑 Accedi per Scansionare",
     "productScanner": "🔍 Scanner Prodotto",
     "productScannerDescription": "Scansiona i codici a barre per verificare istantaneamente se i prodotti sono halal, haram o necessitano di verifica. Ottieni analisi dettagliate degli ingredienti e informazioni di certificazione.",
+    "createAccount": "Crea Account",
+    "guestAuthDescription": "Crea un account per salvare la cronologia delle scansioni e segnalare prodotti.",
     "adminPanel": "Pannello Amministratore",
     "logout": "Disconnetti"
+  },
+  "productCreation": {
+    "loginRequired": "Accesso Richiesto",
+    "loginRequiredDescription": "Devi essere connesso per creare nuovi prodotti. Accedi per continuare.",
+    "barcode": "Codice a Barre"
   },
   "scanner": {
     "scanProduct": "Scansiona Prodotto",

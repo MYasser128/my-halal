@@ -19,9 +19,10 @@ import { registerScreenStyles } from '../styles/RegisterScreen.styles';
 interface RegisterScreenProps {
   onRegister: (user: User) => void;
   onSwitchToLogin: () => void;
+  onBackToHome: () => void;
 }
 
-export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSwitchToLogin }) => {
+export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSwitchToLogin, onBackToHome }) => {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -72,10 +73,13 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
         <View style={registerScreenStyles.formContainer}>
           <View style={registerScreenStyles.header}>
             <View style={registerScreenStyles.headerTop}>
-              <View style={registerScreenStyles.logo}>
-                <Text style={registerScreenStyles.logoText}>🕌</Text>
-              </View>
+              <TouchableOpacity style={registerScreenStyles.backButton} onPress={onBackToHome}>
+                <Text style={registerScreenStyles.backButtonText}>← {t('common.back')}</Text>
+              </TouchableOpacity>
               <LanguageSwitcher style={registerScreenStyles.languageSwitcher} />
+            </View>
+            <View style={registerScreenStyles.logo}>
+              <Text style={registerScreenStyles.logoText}>🕌</Text>
             </View>
             <Text style={registerScreenStyles.title}>{t('auth.createAccount')}</Text>
             <Text style={registerScreenStyles.subtitle}>{t('auth.signUpToGetStarted')}</Text>

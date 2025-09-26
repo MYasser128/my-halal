@@ -19,9 +19,10 @@ import { loginScreenStyles } from '../styles/LoginScreen.styles';
 interface LoginScreenProps {
   onLogin: (user: User) => void;
   onSwitchToRegister: () => void;
+  onBackToHome: () => void;
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSwitchToRegister }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSwitchToRegister, onBackToHome }) => {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,6 +47,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSwitchToReg
       // Get the user profile with actual display name from Firestore
       const userWithProfile = await getUserProfile(userCredential.user);
       onLogin(userWithProfile);
+      onBackToHome();
     } catch (error: any) {
       Alert.alert(t('auth.loginFailed'), error.message || t('auth.anErrorOccurred'));
     } finally {
@@ -62,10 +64,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSwitchToReg
         <View style={loginScreenStyles.formContainer}>
           <View style={loginScreenStyles.header}>
             <View style={loginScreenStyles.headerTop}>
-              <View style={loginScreenStyles.logo}>
-                <Text style={loginScreenStyles.logoText}>🕌</Text>
-              </View>
+              <TouchableOpacity style={loginScreenStyles.backButton} onPress={onBackToHome}>
+                <Text style={loginScreenStyles.backButtonText}>← {t('common.back')}</Text>
+              </TouchableOpacity>
               <LanguageSwitcher style={loginScreenStyles.languageSwitcher} />
+            </View>
+            <View style={loginScreenStyles.logo}>
+              <Text style={loginScreenStyles.logoText}>🕌</Text>
             </View>
             <Text style={loginScreenStyles.title}>{t('auth.welcomeBack')}</Text>
             <Text style={loginScreenStyles.subtitle}>{t('auth.signInToAccount')}</Text>

@@ -10,17 +10,29 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { User } from 'firebase/auth';
 import { isRTL } from '../i18n';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface BurgerMenuProps {
+  user: User | null;
   onLogout: () => void;
+  onNavigateToLogin: () => void;
+  onNavigateToAdmin?: () => void;
+  isAdmin?: boolean;
   style?: any;
 }
 
 const { width: screenWidth } = Dimensions.get('window');
 
-export const BurgerMenu: React.FC<BurgerMenuProps> = ({ onLogout, style }) => {
+export const BurgerMenu: React.FC<BurgerMenuProps> = ({ 
+  user, 
+  onLogout, 
+  onNavigateToLogin, 
+  onNavigateToAdmin,
+  isAdmin,
+  style 
+}) => {
   const { t, i18n } = useTranslation();
   const isCurrentRTL = isRTL(i18n.language);
   const [isOpen, setIsOpen] = React.useState(false);
@@ -58,6 +70,17 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ onLogout, style }) => {
     onLogout();
   };
 
+  const handleLogin = () => {
+    closeSidebar();
+    onNavigateToLogin();
+  };
+
+  const handleAdmin = () => {
+    closeSidebar();
+    onNavigateToAdmin?.();
+  };
+
+
   const styles = StyleSheet.create({
     container: {
       ...style,
@@ -93,6 +116,7 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ onLogout, style }) => {
       paddingTop: 60,
       paddingHorizontal: 20,
       paddingBottom: 20,
+      flex: 1,
       ...(isCurrentRTL ? { right: 0 } : { left: 0 }),
     },
     sidebarHeader: {
@@ -148,12 +172,7 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ onLogout, style }) => {
     menuIconActive: {
       color: '#1976d2',
     },
-    languageSection: {
-      marginTop: 20,
-      paddingTop: 20,
-      borderTopWidth: 1,
-      borderTopColor: '#e9ecef',
-    },
+    
     languageSectionTitle: {
       fontSize: 14,
       fontWeight: '600',
@@ -162,6 +181,62 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ onLogout, style }) => {
       textTransform: 'uppercase',
       letterSpacing: 0.5,
     },
+    adminSection: {
+      marginTop: 20,
+      marginBottom: 12,
+      
+    },
+    adminButton: {
+      flexDirection: isCurrentRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      paddingVertical: 15,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      backgroundColor: '#6f42c1',
+    },
+    adminButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#ffffff',
+      marginLeft: isCurrentRTL ? 0 : 12,
+      marginRight: isCurrentRTL ? 12 : 0,
+    },
+    bottomSection: {
+      marginTop: 'auto',
+      borderTopWidth: 1,
+      borderTopColor: '#e9ecef',
+    },
+    userInfo: {
+      marginBottom: 20,
+      paddingBottom: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: '#e9ecef',
+    },
+    userName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#212529',
+      marginBottom: 4,
+    },
+    userEmail: {
+      fontSize: 14,
+      color: '#6c757d',
+    },
+    loginButton: {
+      flexDirection: isCurrentRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      paddingVertical: 15,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      backgroundColor: '#007AFF',
+    },
+    loginButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#ffffff',
+      marginLeft: isCurrentRTL ? 0 : 12,
+      marginRight: isCurrentRTL ? 12 : 0,
+    },
     logoutButton: {
       flexDirection: isCurrentRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
@@ -169,7 +244,6 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ onLogout, style }) => {
       paddingHorizontal: 12,
       borderRadius: 8,
       backgroundColor: '#dc3545',
-      marginTop: 20,
     },
     logoutButtonText: {
       fontSize: 16,
@@ -214,17 +288,43 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ onLogout, style }) => {
                   </TouchableOpacity>
                 </View>
 
-                <View style={styles.languageSection}>
+                {user && (
+                  <View style={styles.userInfo}>
+                    <Text style={styles.userName}>{user.displayName || user.email}</Text>
+                    <Text style={styles.userEmail}>{user.email}</Text>
+                  </View>
+                )}
+
+                <View>
                   <Text style={styles.languageSectionTitle}>
                     {t('language.selectLanguage')}
                   </Text>
                   <LanguageSwitcher compact={true} style={{ backgroundColor: 'transparent' }} />
                 </View>
 
-                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                  <Text style={styles.menuIcon}>🚪</Text>
-                  <Text style={styles.logoutButtonText}>{t('home.logout')}</Text>
-                </TouchableOpacity>
+                
+
+                <View style={styles.bottomSection}>
+                  {user && isAdmin && (
+                    <View style={styles.adminSection}>
+                      <TouchableOpacity style={styles.adminButton} onPress={handleAdmin}>
+                        <Text style={styles.menuIcon}>⚙️</Text>
+                        <Text style={styles.adminButtonText}>{t('home.adminPanel')}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  {user ? (
+                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                      <Text style={styles.menuIcon}>🚪</Text>
+                      <Text style={styles.logoutButtonText}>{t('home.logout')}</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+                      <Text style={styles.menuIcon}>🔑</Text>
+                      <Text style={styles.loginButtonText}>{t('auth.signIn')}</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               </Animated.View>
             </TouchableWithoutFeedback>
           </View>

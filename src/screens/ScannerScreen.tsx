@@ -10,10 +10,11 @@ import { ProductCreationScreen } from "./ProductCreationScreen";
 
 interface ScannerScreenProps {
   onBack: () => void;
-  user: any;
+  user: any | null;
+  onNavigateToLogin?: () => void;
 }
 
-export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
+export default function ScannerScreen({ onBack, user, onNavigateToLogin }: ScannerScreenProps) {
   const { t } = useTranslation();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
@@ -280,6 +281,7 @@ export default function ScannerScreen({ onBack, user }: ScannerScreenProps) {
         onBack={handleBackToScanner}
         onSuccess={handleProductCreated}
         user={user}
+        onNavigateToLogin={onNavigateToLogin}
       />
     );
   }

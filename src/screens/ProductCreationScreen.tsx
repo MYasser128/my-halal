@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { productCreationStyles } from '../styles/ProductCreation.styles';
@@ -10,7 +11,8 @@ interface ProductCreationScreenProps {
   barcode: string;
   onBack: () => void;
   onSuccess: () => void;
-  user: User;
+  user: User | null;
+  onNavigateToLogin?: () => void;
 }
 
 const COUNTRIES = [
@@ -21,8 +23,10 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
   barcode, 
   onBack, 
   onSuccess,
-  user
+  user,
+  onNavigateToLogin
 }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     halalStatus: 'halal' as 'halal' | 'haram',
@@ -36,11 +40,43 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
   // Check admin status on component mount
   React.useEffect(() => {
     const checkAdminStatus = async () => {
-      const adminStatus = await isAdmin(user);
-      setIsUserAdmin(adminStatus);
+      if (user) {
+        const adminStatus = await isAdmin(user);
+        setIsUserAdmin(adminStatus);
+      }
     };
     checkAdminStatus();
   }, [user]);
+
+  // Show login required message for guest users
+  if (!user) {
+    return (
+      <View style={productCreationStyles.container}>
+        <View style={productCreationStyles.header}>
+          <TouchableOpacity style={productCreationStyles.backButton} onPress={onBack}>
+            <Text style={productCreationStyles.backButtonText}>← {t('common.back')}</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <View style={productCreationStyles.content}>
+          <View style={productCreationStyles.loginRequiredCard}>
+            <Text style={productCreationStyles.loginRequiredTitle}>{t('productCreation.loginRequired')}</Text>
+            <Text style={productCreationStyles.loginRequiredDescription}>
+              {t('productCreation.loginRequiredDescription')}
+            </Text>
+            <Text style={productCreationStyles.barcodeInfo}>
+              {t('productCreation.barcode')}: {barcode}
+            </Text>
+            {onNavigateToLogin && (
+              <TouchableOpacity style={productCreationStyles.loginButton} onPress={onNavigateToLogin}>
+                <Text style={productCreationStyles.loginButtonText}>{t('auth.signIn')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

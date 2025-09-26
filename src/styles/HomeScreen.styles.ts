@@ -179,4 +179,37 @@ export const homeScreenStyles = StyleSheet.create({
     ...textStyles.caption,
     textAlign: 'center',
   },
+
+  // Auth card for non-authenticated users
+  authCard: {
+    ...cardStyles.elevated,
+    marginTop: spacing[6],
+    backgroundColor: colors.neutral[50],
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+  },
+
+  authTitle: {
+    ...textStyles.h4,
+    color: colors.text.primary,
+    marginBottom: spacing[2],
+    textAlign: 'center',
+  },
+
+  authDescription: {
+    ...textStyles.bodySecondary,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: spacing[6],
+  },
+
+  authButton: {
+    ...buttonStyles.primary,
+    marginTop: spacing[4],
+  },
+
+  authButtonText: {
+    ...buttonStyles.primaryText,
+    textAlign: 'center',
+  },
 });

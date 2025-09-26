@@ -8,19 +8,25 @@ import {
 import { User } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
 import { useAdmin } from '../hooks/useAdmin';
-import { AdminPanel } from '../components/AdminPanel';
 import { BurgerMenu } from '../components/BurgerMenu';
 import { isRTL } from '../i18n';
 import { homeScreenStyles } from '../styles/HomeScreen.styles';
 
 interface HomeScreenProps {
-  user: User;
+  user: User | null;
   onLogout: () => void;
   onNavigateToScanner: () => void;
   onNavigateToAdmin: () => void;
+  onNavigateToLogin: () => void;
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ user, onLogout, onNavigateToScanner, onNavigateToAdmin }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ 
+  user, 
+  onLogout, 
+  onNavigateToScanner, 
+  onNavigateToAdmin, 
+  onNavigateToLogin 
+}) => {
   const { t, i18n } = useTranslation();
   const { isAdmin, loading } = useAdmin(user);
   const isCurrentRTL = isRTL(i18n.language);
@@ -29,7 +35,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ user, onLogout, onNaviga
     <ScrollView style={homeScreenStyles.container}>
       <View style={homeScreenStyles.header}>
         <BurgerMenu 
+          user={user}
           onLogout={onLogout} 
+          onNavigateToLogin={onNavigateToLogin}
+          onNavigateToAdmin={onNavigateToAdmin}
+          isAdmin={isAdmin}
           style={[
             homeScreenStyles.burgerMenu,
             isCurrentRTL ? { right: 'auto', left: 20 } : { right: 20, left: 'auto' }
@@ -37,7 +47,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ user, onLogout, onNaviga
         />
         <View style={homeScreenStyles.headerContent}>
           <Text style={homeScreenStyles.title}>My Halal</Text>
-          <Text style={homeScreenStyles.subtitle}>{t('home.welcome')}, {user.displayName || user.email}!</Text>
+          <Text style={homeScreenStyles.subtitle}>
+            {user ? `${t('home.welcome')}, ${user.displayName || user.email}!` : t('home.welcomeGuest')}
+          </Text>
         </View>
       </View>
 
@@ -64,12 +76,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ user, onLogout, onNaviga
           </Text>
         </View>
 
-        {isAdmin && (
-          <View style={homeScreenStyles.adminSection}>
-            <Text style={homeScreenStyles.adminSectionTitle}>{t('home.adminPanel')}</Text>
-            <AdminPanel onNavigateToAdmin={onNavigateToAdmin} />
+        {!user && (
+          <View style={homeScreenStyles.authCard}>
+            <Text style={homeScreenStyles.authTitle}>{t('home.createAccount')}</Text>
+            <Text style={homeScreenStyles.authDescription}>
+              {t('home.guestAuthDescription')}
+            </Text>
+            <TouchableOpacity style={homeScreenStyles.authButton} onPress={onNavigateToLogin}>
+              <Text style={homeScreenStyles.authButtonText}>{t('auth.signIn')}</Text>
+            </TouchableOpacity>
           </View>
         )}
+
       </View>
     </ScrollView>
   );

@@ -12,7 +12,7 @@ import './src/i18n'; // Initialize i18n
 import { isRTL } from './src/i18n';
 
 type AuthScreen = 'login' | 'register';
-type AppScreen = 'home' | 'scanner' | 'admin';
+type AppScreen = 'home' | 'scanner' | 'admin' | 'login' | 'register';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -77,6 +77,14 @@ export default function App() {
     setCurrentScreen('admin');
   };
 
+  const navigateToLogin = () => {
+    setCurrentScreen('login');
+  };
+
+  const navigateToRegister = () => {
+    setCurrentScreen('register');
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -85,23 +93,40 @@ export default function App() {
     );
   }
 
-  if (user) {
-    if (currentScreen === 'scanner') {
-      return <ScannerScreen onBack={navigateToHome} user={user} />;
-    }
-    if (currentScreen === 'admin') {
-      return <AdminScreen currentUserId={user.uid} onBack={navigateToHome} />;
-    }
-    return <HomeScreen user={user} onLogout={handleLogout} onNavigateToScanner={navigateToScanner} onNavigateToAdmin={navigateToAdmin} />;
+  // Always show Home as default, with different content based on auth state
+  if (currentScreen === 'scanner') {
+    return <ScannerScreen onBack={navigateToHome} user={user} onNavigateToLogin={navigateToLogin} />;
+  }
+  if (currentScreen === 'admin' && user) {
+    return <AdminScreen currentUserId={user.uid} onBack={navigateToHome} />;
+  }
+  if (currentScreen === 'login') {
+    return (
+      <View style={styles.container}>
+        <LoginScreen onLogin={handleLogin} onSwitchToRegister={switchToRegister} onBackToHome={navigateToHome} />
+        <StatusBar style="auto" />
+      </View>
+    );
+  }
+  if (currentScreen === 'register') {
+    return (
+      <View style={styles.container}>
+        <RegisterScreen onRegister={handleLogin} onSwitchToLogin={switchToLogin} onBackToHome={navigateToHome} />
+        <StatusBar style="auto" />
+      </View>
+    );
   }
 
+  // Default Home screen (shows for both authenticated and non-authenticated users)
   return (
     <View style={styles.container}>
-      {authScreen === 'login' ? (
-        <LoginScreen onLogin={handleLogin} onSwitchToRegister={switchToRegister} />
-      ) : (
-        <RegisterScreen onRegister={handleLogin} onSwitchToLogin={switchToLogin} />
-      )}
+      <HomeScreen 
+        user={user} 
+        onLogout={handleLogout} 
+        onNavigateToScanner={navigateToScanner} 
+        onNavigateToAdmin={navigateToAdmin}
+        onNavigateToLogin={navigateToLogin}
+      />
       <StatusBar style="auto" />
     </View>
   );

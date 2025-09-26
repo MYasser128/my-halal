@@ -33,7 +33,6 @@ export const productCreationStyles = StyleSheet.create({
   
   backButton: {
     padding: spacing[3],
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: borderRadius.full,
     marginRight: spacing[4],
   },
@@ -42,6 +41,7 @@ export const productCreationStyles = StyleSheet.create({
     ...textStyles.button,
     color: colors.text.inverse,
     fontSize: typography.fontSize.base,
+    
   },
   
   // Content styles
@@ -288,5 +288,51 @@ export const productCreationStyles = StyleSheet.create({
     ...textStyles.caption,
     color: colors.warning,
     fontWeight: typography.fontWeight.medium,
+  },
+
+  // Login required styles
+  loginRequiredCard: {
+    ...cardStyles.elevated,
+    padding: spacing[6],
+    alignItems: 'center',
+    backgroundColor: colors.warning[50],
+    borderWidth: 1,
+    borderColor: colors.warning[200],
+  },
+
+  loginRequiredTitle: {
+    ...textStyles.h3,
+    color: colors.warning[700],
+    marginBottom: spacing[3],
+    textAlign: 'center',
+  },
+
+  loginRequiredDescription: {
+    ...textStyles.body,
+    color: colors.warning[600],
+    textAlign: 'center',
+    marginBottom: spacing[4],
+    lineHeight: typography.lineHeight.relaxed * typography.fontSize.base,
+  },
+
+  barcodeInfo: {
+    ...textStyles.caption,
+    color: colors.text.secondary,
+    fontFamily: 'monospace',
+    backgroundColor: colors.neutral[100],
+    padding: spacing[2],
+    borderRadius: borderRadius.base,
+  },
+
+  loginButton: {
+    ...buttonStyles.primary,
+    marginTop: spacing[4],
+    alignSelf: 'center',
+    minWidth: 120,
+  },
+
+  loginButtonText: {
+    ...buttonStyles.primaryText,
+    textAlign: 'center',
   },
 });
