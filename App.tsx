@@ -59,10 +59,12 @@ export default function App() {
 
   const switchToRegister = () => {
     setAuthScreen('register');
+    setCurrentScreen('register');
   };
 
   const switchToLogin = () => {
     setAuthScreen('login');
+    setCurrentScreen('login');
   };
 
   const navigateToScanner = () => {
