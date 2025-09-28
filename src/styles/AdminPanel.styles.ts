@@ -640,13 +640,14 @@ export const adminPanelStyles = StyleSheet.create({
     borderTopWidth: 0,
     borderBottomLeftRadius: borderRadius.base,
     borderBottomRightRadius: borderRadius.base,
-    maxHeight: 200,
+    maxHeight: 250,
     zIndex: 1000,
     ...shadows.md,
   },
 
   dropdownList: {
     maxHeight: 200,
+    flexGrow: 0,
   },
 
   dropdownItem: {
@@ -668,5 +669,35 @@ export const adminPanelStyles = StyleSheet.create({
   dropdownItemTextSelected: {
     color: colors.primary[600],
     fontWeight: typography.fontWeight.semibold,
+  },
+
+  // Search in dropdown styles
+  dropdownSearchContainer: {
+    padding: spacing[3],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.primary,
+  },
+
+  dropdownSearchInput: {
+    ...textStyles.body,
+    backgroundColor: colors.background.secondary,
+    borderWidth: 1,
+    borderColor: colors.border.primary,
+    borderRadius: borderRadius.sm,
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[3],
+    color: colors.text.primary,
+    fontSize: typography.fontSize.sm,
+  },
+
+  noResultsContainer: {
+    padding: spacing[4],
+    alignItems: 'center',
+  },
+
+  noResultsText: {
+    ...textStyles.body,
+    color: colors.text.tertiary,
+    fontStyle: 'italic',
   },
 });

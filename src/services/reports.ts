@@ -32,6 +32,7 @@ export interface Product {
   barcode: string;
   name: string;
   lastUpdated: any;
+  country: string;
   createdByAdmin?: string;
   verificationHistory: Array<{
     adminId: string;
@@ -104,6 +105,7 @@ export const approveReport = async (
     const productData: Partial<Product> = {
       barcode,
       name: reportData.name || undefined,
+      country: reportData.country || undefined,
       lastUpdated: serverTimestamp(),
       createdByAdmin: adminId,
       verificationHistory: [{

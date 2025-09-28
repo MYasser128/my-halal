@@ -43,9 +43,15 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const [formData, setFormData] = useState({
     name: '',
     halalStatus: 'halal' as 'halal' | 'haram',
-    country: '',
+    country: 'Italy',
   });
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
+
+  // Filter countries based on search
+  const filteredCountries = EUROPEAN_COUNTRIES.filter(country =>
+    country.toLowerCase().includes(countrySearch.toLowerCase())
+  );
 
   useEffect(() => {
     if (product) {
@@ -54,7 +60,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
         halalStatus: (product.halalStates?.default === 'halal' || product.halalStates?.default === 'haram') 
           ? product.halalStates.default 
           : 'halal',
-        country: product.country || '',
+        country: product.country || 'Italy',
       });
     }
   }, [product]);
@@ -84,9 +90,10 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
     setFormData({
       name: '',
       halalStatus: 'halal',
-      country: '',
+      country: 'Italy',
     });
     setShowCountryDropdown(false);
+    setCountrySearch('');
     onClose();
   };
 
@@ -170,27 +177,49 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
               
               {showCountryDropdown && (
                 <View style={adminPanelStyles.dropdownContainer}>
-                  <ScrollView style={adminPanelStyles.dropdownList} nestedScrollEnabled>
-                    {EUROPEAN_COUNTRIES.map((country) => (
-                      <TouchableOpacity
-                        key={country}
-                        style={[
-                          adminPanelStyles.dropdownItem,
-                          formData.country === country && adminPanelStyles.dropdownItemSelected
-                        ]}
-                        onPress={() => {
-                          setFormData({ ...formData, country });
-                          setShowCountryDropdown(false);
-                        }}
-                      >
-                        <Text style={[
-                          adminPanelStyles.dropdownItemText,
-                          formData.country === country && adminPanelStyles.dropdownItemTextSelected
-                        ]}>
-                          {country}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                  <View style={adminPanelStyles.dropdownSearchContainer}>
+                    <TextInput
+                      style={adminPanelStyles.dropdownSearchInput}
+                      placeholder="Search countries..."
+                      value={countrySearch}
+                      onChangeText={setCountrySearch}
+                      placeholderTextColor={colors.text.tertiary}
+                      autoFocus={true}
+                    />
+                  </View>
+                  <ScrollView 
+                    style={adminPanelStyles.dropdownList}
+                    nestedScrollEnabled={true}
+                    showsVerticalScrollIndicator={true}
+                    bounces={false}
+                  >
+                    {filteredCountries.length > 0 ? (
+                      filteredCountries.map((country) => (
+                        <TouchableOpacity
+                          key={country}
+                          style={[
+                            adminPanelStyles.dropdownItem,
+                            formData.country === country && adminPanelStyles.dropdownItemSelected
+                          ]}
+                          onPress={() => {
+                            setFormData({ ...formData, country });
+                            setShowCountryDropdown(false);
+                            setCountrySearch('');
+                          }}
+                        >
+                          <Text style={[
+                            adminPanelStyles.dropdownItemText,
+                            formData.country === country && adminPanelStyles.dropdownItemTextSelected
+                          ]}>
+                            {country}
+                          </Text>
+                        </TouchableOpacity>
+                      ))
+                    ) : (
+                      <View style={adminPanelStyles.noResultsContainer}>
+                        <Text style={adminPanelStyles.noResultsText}>No countries found</Text>
+                      </View>
+                    )}
                   </ScrollView>
                 </View>
               )}
