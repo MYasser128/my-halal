@@ -111,17 +111,26 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
       const cleanBarcode = barcode.replace(/[^a-zA-Z0-9_-]/g, '_');
       
       if (userIsAdmin) {
-        // Admin: Add directly to products collection
+        // Admin: Add directly to products collection with same structure as approveReport
         const productData = {
-          name: formData.name.trim(),
           barcode: barcode,
-          country: formData.country,
+          name: formData.name.trim(),
+          lastUpdated: new Date(),
+          createdByAdmin: user.uid,
+          verificationHistory: [{
+            adminId: user.uid,
+            action: 'created',
+            notes: 'Product created directly by admin',
+            timestamp: new Date()
+          }],
           halalStates: {
             default: formData.halalStatus,
+            perCountry: formData.country ? {
+              [formData.country]: formData.halalStatus
+            } : undefined
           },
+          country: formData.country || undefined,
           createdAt: new Date(),
-          updatedAt: new Date(),
-          createdBy: user.uid,
           status: 'verified',
         };
 

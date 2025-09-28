@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ScrollView, ActivityIndicator, TextInput } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { setAdminStatus } from '../services/auth';
 import { getPendingReports, approveReport, rejectReport, getAllReports } from '../services/reports';
 import { Report } from '../services/reports';
+import { getAllProducts, updateProduct, deleteProduct, searchProducts, Product, ProductUpdateData } from '../services/products';
 import { adminPanelStyles } from '../styles/AdminPanel.styles';
+import { colors } from '../styles/theme';
+import { ProductEditModal } from '../components/ProductEditModal';
+import { useTranslation } from 'react-i18next';
 
 interface AdminScreenProps {
   currentUserId: string;
@@ -13,11 +17,15 @@ interface AdminScreenProps {
 }
 
 export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack }) => {
+  const { t } = useTranslation();
   const [pendingReports, setPendingReports] = useState<Report[]>([]);
   const [allReports, setAllReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState<'reports' | 'users'>('reports');
+  const [selectedTab, setSelectedTab] = useState<'reports' | 'users' | 'products'>('reports');
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadData();
@@ -26,14 +34,18 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [pending, all, usersList] = await Promise.all([
+      const [pending, all, usersList, productsList] = await Promise.all([
         getPendingReports(),
         getAllReports(),
-        getUsers()
+        getUsers(),
+        getAllProducts()
       ]);
       setPendingReports(pending);
       setAllReports(all);
       setUsers(usersList);
+      console.log(productsList);
+      
+      setProducts(productsList.products);
     } catch (error) {
       console.error('Error loading data:', error);
       Alert.alert('Error', 'Failed to load data');
@@ -111,6 +123,68 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
     }
   };
 
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+  };
+
+  const handleSaveProduct = async (productId: string, updateData: ProductUpdateData) => {
+    try {
+      const success = await updateProduct(productId, updateData, currentUserId);
+      if (success) {
+        Alert.alert(t('common.success'), t('admin.productUpdated'));
+        setEditingProduct(null);
+        loadData(); // Refresh data
+      } else {
+        Alert.alert(t('common.error'), t('admin.productUpdateFailed'));
+      }
+    } catch (error) {
+      Alert.alert(t('common.error'), t('admin.productUpdateFailed'));
+    }
+  };
+
+  const handleDeleteProduct = (productId: string, productName: string) => {
+    Alert.alert(
+      t('admin.deleteProduct'),
+      t('admin.deleteProductConfirm', { productName }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const success = await deleteProduct(productId);
+              if (success) {
+                Alert.alert(t('common.success'), t('admin.productDeleted'));
+                loadData(); // Refresh data
+              } else {
+                Alert.alert(t('common.error'), t('admin.productDeleteFailed'));
+              }
+            } catch (error) {
+              Alert.alert(t('common.error'), t('admin.productDeleteFailed'));
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleSearchProducts = async (term: string) => {
+    setSearchTerm(term);
+    if (term.trim() === '') {
+      loadData();
+      return;
+    }
+    
+    try {
+      const searchResults = await searchProducts(term);
+      setProducts(searchResults);
+    } catch (error) {
+      console.error('Error searching products:', error);
+      Alert.alert(t('common.error'), 'Failed to search products');
+    }
+  };
+
   if (loading) {
     return (
       <View style={adminPanelStyles.container}>
@@ -156,6 +230,14 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
         >
           <Text style={[adminPanelStyles.tabText, selectedTab === 'users' && adminPanelStyles.activeTabText]}>
             Users ({users.length})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[adminPanelStyles.tab, selectedTab === 'products' && adminPanelStyles.activeTab]}
+          onPress={() => setSelectedTab('products')}
+        >
+          <Text style={[adminPanelStyles.tabText, selectedTab === 'products' && adminPanelStyles.activeTabText]}>
+            {t('admin.products')} ({products.length})
           </Text>
         </TouchableOpacity>
       </View>
@@ -275,7 +357,121 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
             )}
           </>
         )}
+
+        {selectedTab === 'products' && (
+          <>
+            <View style={adminPanelStyles.statsContainer}>
+              <View style={adminPanelStyles.statCard}>
+                <Text style={adminPanelStyles.statNumber}>{products.length}</Text>
+                <Text style={adminPanelStyles.statLabel}>{t('admin.totalProducts')}</Text>
+              </View>
+              <View style={adminPanelStyles.statCard}>
+                <Text style={adminPanelStyles.statNumber}>
+                  {products.filter(p => p.halalStates?.default === 'halal').length}
+                </Text>
+                <Text style={adminPanelStyles.statLabel}>{t('admin.halalProducts')}</Text>
+              </View>
+            </View>
+
+            <Text style={adminPanelStyles.sectionTitle}>{t('admin.productManagement')}</Text>
+            
+            {/* Search Bar */}
+            <View style={adminPanelStyles.searchContainer}>
+              <TextInput
+                style={adminPanelStyles.searchInput}
+                placeholder={t('admin.searchProducts')}
+                value={searchTerm}
+                onChangeText={handleSearchProducts}
+                placeholderTextColor={colors.text.tertiary}
+              />
+            </View>
+
+            {products.length === 0 ? (
+              <View style={adminPanelStyles.emptyContainer}>
+                <Text style={adminPanelStyles.emptyIcon}>📦</Text>
+                <Text style={adminPanelStyles.emptyTitle}>{t('admin.noProductsFound')}</Text>
+                <Text style={adminPanelStyles.emptyText}>
+                  {searchTerm ? t('admin.noProductsMatch') : t('admin.noProductsInDatabase')}
+                </Text>
+              </View>
+            ) : (
+              products.map((product) => (
+                <View key={product.id} style={adminPanelStyles.productCard}>
+                  <View style={adminPanelStyles.productHeader}>
+                    <Text style={adminPanelStyles.productName}>
+                      {product.name || 'Unnamed Product'}
+                    </Text>
+                    <View style={[
+                      adminPanelStyles.statusBadge,
+                      product.halalStates?.default === 'halal' ? adminPanelStyles.halalBadge : 
+                      product.halalStates?.default === 'haram' ? adminPanelStyles.haramBadge : 
+                      adminPanelStyles.unknownBadge
+                    ]}>
+                      <Text style={[
+                        adminPanelStyles.statusText,
+                        product.halalStates?.default === 'halal' ? adminPanelStyles.halalText : 
+                        product.halalStates?.default === 'haram' ? adminPanelStyles.haramText : 
+                        adminPanelStyles.unknownText
+                      ]}>
+                        {product.halalStates?.default?.toUpperCase() || 'UNKNOWN'}
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <View style={adminPanelStyles.productDetails}>
+                    <View style={adminPanelStyles.productDetailRow}>
+                      <Text style={adminPanelStyles.productDetailLabel}>{t('admin.barcode')}:</Text>
+                      <Text style={adminPanelStyles.productDetailValue}>{product.barcode}</Text>
+                    </View>
+                    {product.country && (
+                      <View style={adminPanelStyles.productDetailRow}>
+                        <Text style={adminPanelStyles.productDetailLabel}>{t('admin.country')}:</Text>
+                        <Text style={adminPanelStyles.productDetailValue}>{product.country}</Text>
+                      </View>
+                    )}
+                    {product.manufacturer && (
+                      <View style={adminPanelStyles.productDetailRow}>
+                        <Text style={adminPanelStyles.productDetailLabel}>{t('admin.manufacturer')}:</Text>
+                        <Text style={adminPanelStyles.productDetailValue}>{product.manufacturer}</Text>
+                      </View>
+                    )}
+                    {product.lastUpdated && (
+                      <View style={adminPanelStyles.productDetailRow}>
+                        <Text style={adminPanelStyles.productDetailLabel}>{t('admin.lastUpdated')}:</Text>
+                        <Text style={adminPanelStyles.productDetailValue}>
+                          {new Date(product.lastUpdated.seconds * 1000).toLocaleDateString()}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  
+                  <View style={adminPanelStyles.productActions}>
+                    <TouchableOpacity
+                      style={adminPanelStyles.editButton}
+                      onPress={() => handleEditProduct(product)}
+                    >
+                      <Text style={adminPanelStyles.editButtonText}>✏️ {t('common.edit')}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={adminPanelStyles.deleteButton}
+                      onPress={() => handleDeleteProduct(product.id, product.name || 'Unnamed Product')}
+                    >
+                      <Text style={adminPanelStyles.deleteButtonText}>🗑️ {t('common.delete')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))
+            )}
+          </>
+        )}
       </ScrollView>
+
+      <ProductEditModal
+        visible={editingProduct !== null}
+        product={editingProduct}
+        onClose={() => setEditingProduct(null)}
+        onSave={handleSaveProduct}
+      />
     </View>
   );
 };

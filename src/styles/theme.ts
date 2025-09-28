@@ -63,6 +63,13 @@ export const colors = {
     inverse: '#ffffff',
   },
   
+  // Border colors
+  border: {
+    primary: '#e2e8f0',
+    secondary: '#cbd5e1',
+    tertiary: '#94a3b8',
+  },
+  
   // Status colors for halal/haram
   halal: '#22c55e',
   haram: '#ef4444',

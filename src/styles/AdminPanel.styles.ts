@@ -353,4 +353,320 @@ export const adminPanelStyles = StyleSheet.create({
     fontWeight: typography.fontWeight.medium,
     textAlign: 'center',
   },
+
+  // Product management styles
+  searchContainer: {
+    marginBottom: spacing[6],
+  },
+
+  searchInput: {
+    ...textStyles.body,
+    backgroundColor: colors.background.primary,
+    borderWidth: 1,
+    borderColor: colors.border.primary,
+    borderRadius: borderRadius.base,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    color: colors.text.primary,
+  },
+
+  productCard: {
+    ...cardStyles.elevated,
+    marginBottom: spacing[4],
+  },
+
+  productHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing[3],
+  },
+
+  productName: {
+    ...textStyles.h4,
+    color: colors.text.primary,
+    flex: 1,
+    marginRight: spacing[2],
+  },
+
+  statusBadge: {
+    paddingVertical: spacing[1],
+    paddingHorizontal: spacing[2],
+    borderRadius: borderRadius.sm,
+  },
+
+  halalBadge: {
+    backgroundColor: colors.success + '20',
+    borderWidth: 1,
+    borderColor: colors.success,
+  },
+
+  haramBadge: {
+    backgroundColor: colors.error + '20',
+    borderWidth: 1,
+    borderColor: colors.error,
+  },
+
+  unknownBadge: {
+    backgroundColor: colors.warning + '20',
+    borderWidth: 1,
+    borderColor: colors.warning,
+  },
+
+  statusText: {
+    ...textStyles.caption,
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.semibold,
+  },
+
+  halalText: {
+    color: colors.success,
+  },
+
+  haramText: {
+    color: colors.error,
+  },
+
+  unknownText: {
+    color: colors.warning,
+  },
+
+  productDetails: {
+    marginBottom: spacing[4],
+  },
+
+  productDetailRow: {
+    flexDirection: 'row',
+    marginBottom: spacing[1],
+  },
+
+  productDetailLabel: {
+    ...textStyles.caption,
+    color: colors.text.tertiary,
+    fontWeight: typography.fontWeight.semibold,
+    width: 100,
+  },
+
+  productDetailValue: {
+    ...textStyles.caption,
+    color: colors.text.secondary,
+    flex: 1,
+  },
+
+  productActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  editButton: {
+    ...buttonStyles.secondary,
+    flex: 1,
+    marginRight: spacing[2],
+    backgroundColor: colors.primary[50],
+    borderColor: colors.primary[300],
+  },
+
+  editButtonText: {
+    ...buttonStyles.secondaryText,
+    color: colors.primary[600],
+  },
+
+  deleteButton: {
+    ...buttonStyles.secondary,
+    flex: 1,
+    marginLeft: spacing[2],
+    backgroundColor: colors.error + '10',
+    borderColor: colors.error + '30',
+  },
+
+  deleteButtonText: {
+    ...buttonStyles.secondaryText,
+    color: colors.error,
+  },
+
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: colors.background.secondary,
+  },
+
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing[6],
+    paddingVertical: spacing[4],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.primary,
+    backgroundColor: colors.background.primary,
+  },
+
+  modalTitle: {
+    ...textStyles.h3,
+    color: colors.text.primary,
+  },
+
+  closeButton: {
+    padding: spacing[2],
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.background.tertiary,
+  },
+
+  closeButtonText: {
+    ...textStyles.h4,
+    color: colors.text.secondary,
+  },
+
+  modalContent: {
+    flex: 1,
+    padding: spacing[6],
+  },
+
+  formGroup: {
+    marginBottom: spacing[6],
+  },
+
+  formLabel: {
+    ...textStyles.body,
+    color: colors.text.primary,
+    fontWeight: typography.fontWeight.semibold,
+    marginBottom: spacing[2],
+  },
+
+  formInput: {
+    ...textStyles.body,
+    backgroundColor: colors.background.primary,
+    borderWidth: 1,
+    borderColor: colors.border.primary,
+    borderRadius: borderRadius.base,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    color: colors.text.primary,
+  },
+
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+
+  radioGroup: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing[3],
+  },
+
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[3],
+    borderRadius: borderRadius.base,
+    borderWidth: 1,
+    borderColor: colors.border.primary,
+    backgroundColor: colors.background.primary,
+  },
+
+  radioOptionSelected: {
+    borderColor: colors.primary[500],
+    backgroundColor: colors.primary[50],
+  },
+
+  radioIndicator: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginRight: spacing[2],
+    opacity: 0.3,
+  },
+
+  radioIndicatorSelected: {
+    opacity: 1,
+  },
+
+  radioLabel: {
+    ...textStyles.body,
+    color: colors.text.primary,
+  },
+
+  modalActions: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing[6],
+    paddingVertical: spacing[4],
+    borderTopWidth: 1,
+    borderTopColor: colors.border.primary,
+    backgroundColor: colors.background.primary,
+    gap: spacing[3],
+  },
+
+  cancelButton: {
+    ...buttonStyles.secondary,
+    flex: 1,
+  },
+
+  cancelButtonText: {
+    ...buttonStyles.secondaryText,
+  },
+
+  saveButton: {
+    ...buttonStyles.primary,
+    flex: 1,
+  },
+
+  saveButtonText: {
+    ...buttonStyles.primaryText,
+  },
+
+  // Dropdown styles
+  formInputText: {
+    ...textStyles.body,
+    color: colors.text.primary,
+    flex: 1,
+  },
+
+  dropdownArrow: {
+    ...textStyles.body,
+    color: colors.text.tertiary,
+    marginLeft: spacing[2],
+  },
+
+  dropdownContainer: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: colors.background.primary,
+    borderWidth: 1,
+    borderColor: colors.border.primary,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: borderRadius.base,
+    borderBottomRightRadius: borderRadius.base,
+    maxHeight: 200,
+    zIndex: 1000,
+    ...shadows.md,
+  },
+
+  dropdownList: {
+    maxHeight: 200,
+  },
+
+  dropdownItem: {
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.primary,
+  },
+
+  dropdownItemSelected: {
+    backgroundColor: colors.primary[50],
+  },
+
+  dropdownItemText: {
+    ...textStyles.body,
+    color: colors.text.primary,
+  },
+
+  dropdownItemTextSelected: {
+    color: colors.primary[600],
+    fontWeight: typography.fontWeight.semibold,
+  },
 });
