@@ -43,7 +43,6 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
       setPendingReports(pending);
       setAllReports(all);
       setUsers(usersList);
-      console.log(productsList);
       
       setProducts(productsList.products);
     } catch (error) {

@@ -43,6 +43,7 @@
     "loginFailed": "Accesso Fallito",
     "registrationFailed": "Registrazione Fallita",
     "anErrorOccurred": "Si è verificato un errore",
+    "invalidCredentials": "Email o password non corretti. Riprova.",
     "termsOfService": "Termini di Servizio",
     "privacyPolicy": "Privacy Policy",
     "bySigningUp": "Registrandoti, accetti i nostri",

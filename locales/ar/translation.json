@@ -43,6 +43,7 @@
     "loginFailed": "فشل تسجيل الدخول",
     "registrationFailed": "فشل التسجيل",
     "anErrorOccurred": "حدث خطأ",
+    "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة. يرجى المحاولة مرة أخرى.",
     "termsOfService": "شروط الخدمة",
     "privacyPolicy": "سياسة الخصوصية",
     "bySigningUp": "بالتسجيل، فإنك توافق على",

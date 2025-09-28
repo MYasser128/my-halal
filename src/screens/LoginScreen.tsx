@@ -50,7 +50,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSwitchToReg
       onLogin(userWithProfile);
       onBackToHome();
     } catch (error: any) {
-      Alert.alert(t('auth.loginFailed'), error.message || t('auth.anErrorOccurred'));
+      // Check for specific Firebase auth error codes
+      
+      if (error.code === 'auth/user-not-found' || 
+          error.code === 'auth/wrong-password' || 
+          error.code === 'auth/invalid-email' ||
+          error.code === 'auth/invalid-credential') {
+        Alert.alert(t('auth.loginFailed'), t('auth.invalidCredentials'));
+      } else {
+        Alert.alert(t('auth.loginFailed'), error.message || t('auth.anErrorOccurred'));
+      }
     } finally {
       setLoading(false);
     }
