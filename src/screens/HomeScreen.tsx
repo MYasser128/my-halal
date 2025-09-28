@@ -83,19 +83,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             {t('home.productScannerDescription')}
           </Text>
         </View>
-
-        {!user && (
-          <View style={homeScreenStyles.authCard}>
-            <Text style={homeScreenStyles.authTitle}>{t('home.createAccount')}</Text>
-            <Text style={homeScreenStyles.authDescription}>
-              {t('home.guestAuthDescription')}
-            </Text>
-            <TouchableOpacity style={homeScreenStyles.authButton} onPress={onNavigateToLogin}>
-              <Text style={homeScreenStyles.authButtonText}>{t('auth.signIn')}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
       </View>
     </ScrollView>
   );
