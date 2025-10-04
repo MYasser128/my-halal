@@ -23,6 +23,7 @@ export interface Report {
   reporterId?: string;
   reporterEmail?: string;
   reviewedBy?: string;
+  images?: string[];
   createdAt: any;
   updatedAt: any;
 }
@@ -42,6 +43,7 @@ export interface Product {
   halalStates: {
     default: string;
   };
+  images?: string[];
 }
 
 // Get all pending reports
@@ -113,7 +115,8 @@ export const approveReport = async (
       }],
       halalStates: {
         default: reportData.suggestedState || 'unknown'
-      }
+      },
+      images: reportData.images || undefined
     };
     
     // Use set with merge to create or update

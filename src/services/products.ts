@@ -30,6 +30,7 @@ export interface Product {
   manufacturer?: string;
   category?: string;
   description?: string;
+  images?: string[]; // Array of Firebase Storage URLs
   lastUpdated?: any;
   createdAt?: any;
   createdBy?: string;
@@ -52,6 +53,7 @@ export interface ProductUpdateData {
   manufacturer?: string;
   category?: string;
   description?: string;
+  images?: string[]; // Array of Firebase Storage URLs
   lastUpdated?: any;
 }
 

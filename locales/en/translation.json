@@ -126,7 +126,8 @@
     "date": "Date",
     "status": "Status",
     "valid": "Valid",
-    "expired": "Expired"
+    "expired": "Expired",
+    "images": "Images"
   },
   "admin": {
     "adminPanel": "Admin Panel",

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Image, Dimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { productDetailStyles } from '../styles/ProductDetail.styles';
+import { ProductImage } from '../components/ProductImage';
 
 interface ProductDetailScreenProps {
   barcode: string;
@@ -28,6 +29,7 @@ interface ProductData {
   manufacturer?: string;
   category?: string;
   description?: string;
+  images?: string[];
   lastUpdated?: Date;
 }
 
@@ -169,6 +171,30 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
       </View>
 
       <ScrollView style={productDetailStyles.content}>
+        {/* Product Images */}
+        {product.images && product.images.length > 0 && (
+          <View style={productDetailStyles.imagesSection}>
+            <Text style={productDetailStyles.sectionTitle}>{t('product.images')}</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={productDetailStyles.imagesScrollView}
+            >
+              {product.images.map((imageUrl, index) => (
+                <ProductImage
+                  key={index}
+                  imageUrl={imageUrl}
+                  style={productDetailStyles.productImage}
+                  onPress={() => {
+                    // You could implement a full-screen image viewer here
+                    Alert.alert('Image', `Product image ${index + 1}`);
+                  }}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
         {/* Product Info Card */}
         <View style={productDetailStyles.productCard}>
           <View style={productDetailStyles.productHeader}>

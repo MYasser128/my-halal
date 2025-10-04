@@ -710,4 +710,17 @@ export const adminPanelStyles = StyleSheet.create({
     color: colors.text.tertiary,
     fontStyle: 'italic',
   },
+
+  // Product image styles
+  productImageContainer: {
+    marginBottom: spacing[3],
+    alignItems: 'center',
+  },
+
+  productImage: {
+    width: 80,
+    height: 80,
+    borderRadius: borderRadius.base,
+    backgroundColor: colors.background.tertiary,
+  },
 });

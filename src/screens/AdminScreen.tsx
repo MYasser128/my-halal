@@ -9,6 +9,7 @@ import { getAllProducts, updateProduct, deleteProduct, searchProducts, Product, 
 import { adminPanelStyles } from '../styles/AdminPanel.styles';
 import { colors } from '../styles/theme';
 import { ProductEditModal } from '../components/ProductEditModal';
+import { ProductImage } from '../components/ProductImage';
 import { useTranslation } from 'react-i18next';
 
 interface AdminScreenProps {
@@ -423,6 +424,17 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
                       </Text>
                     </View>
                   </View>
+
+                  {/* Product Image */}
+                  {product.images && product.images.length > 0 && (
+                    <View style={adminPanelStyles.productImageContainer}>
+                      <ProductImage
+                        imageUrl={product.images[0]}
+                        style={adminPanelStyles.productImage}
+                        fallbackIcon="📦"
+                      />
+                    </View>
+                  )}
                   
                   <View style={adminPanelStyles.productDetails}>
                     <View style={adminPanelStyles.productDetailRow}>

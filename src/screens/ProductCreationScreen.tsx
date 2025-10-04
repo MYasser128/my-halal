@@ -6,6 +6,7 @@ import { db } from '../firebase';
 import { productCreationStyles } from '../styles/ProductCreation.styles';
 import { isAdmin } from '../services/auth';
 import { User } from 'firebase/auth';
+import { ImageUpload } from '../components/ImageUpload';
 
 interface ProductCreationScreenProps {
   barcode: string;
@@ -32,6 +33,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isUserAdmin, setIsUserAdmin] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
 
   // Check admin status on component mount
   React.useEffect(() => {
@@ -93,6 +95,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
             halalStates: {
               default: formData.halalStatus,
             },
+            images: images.length > 0 ? images : undefined,
             createdAt: new Date(),
             status: 'verified',
           };
@@ -119,6 +122,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
             reporterEmail: user.email || '',
             status: 'pending',
             notes: 'Product creation request',
+            images: images.length > 0 ? images : undefined,
             createdAt: new Date(),
             updatedAt: new Date(),
           };
@@ -145,6 +149,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
           suggestedState: formData.halalStatus,
           status: 'pending',
           notes: 'Product creation request from anonymous user',
+          images: images.length > 0 ? images : undefined,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
@@ -313,6 +318,15 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
             </View>
             {errors.halalStatus && <Text style={productCreationStyles.errorText}>{errors.halalStatus}</Text>}
           </View>
+
+          {/* Image Upload */}
+          <ImageUpload
+            images={images}
+            onImagesChange={setImages}
+            productId={barcode.replace(/[^a-zA-Z0-9_-]/g, '_')}
+            maxImages={3}
+            disabled={loading}
+          />
 
 
           {/* Action Buttons */}
