@@ -213,6 +213,30 @@ export const adminPanelStyles = StyleSheet.create({
     borderRadius: borderRadius.sm,
     marginTop: spacing[2],
   },
+
+  // Report images
+  reportImagesContainer: {
+    marginTop: spacing[3],
+  },
+
+  reportImagesLabel: {
+    ...textStyles.caption,
+    color: colors.text.tertiary,
+    fontWeight: typography.fontWeight.semibold,
+    marginBottom: spacing[2],
+  },
+
+  reportImagesScrollView: {
+    marginTop: spacing[1],
+  },
+
+  reportImage: {
+    width: 60,
+    height: 60,
+    borderRadius: borderRadius.sm,
+    marginRight: spacing[2],
+    backgroundColor: colors.background.tertiary,
+  },
   
   // Action buttons
   actionButtons: {

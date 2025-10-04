@@ -5,6 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { productDetailStyles } from '../styles/ProductDetail.styles';
 import { ProductImage } from '../components/ProductImage';
+import { ImageViewer } from '../components/ImageViewer';
 
 interface ProductDetailScreenProps {
   barcode: string;
@@ -42,6 +43,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   const [product, setProduct] = useState<ProductData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewingImages, setViewingImages] = useState<{images: string[], currentIndex: number} | null>(null);
 
   useEffect(() => {
     loadProduct();
@@ -185,10 +187,10 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
                   key={index}
                   imageUrl={imageUrl}
                   style={productDetailStyles.productImage}
-                  onPress={() => {
-                    // You could implement a full-screen image viewer here
-                    Alert.alert('Image', `Product image ${index + 1}`);
-                  }}
+                  onPress={() => setViewingImages({
+                    images: product.images!,
+                    currentIndex: index
+                  })}
                 />
               ))}
             </ScrollView>
@@ -293,6 +295,16 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <ImageViewer
+        visible={viewingImages !== null}
+        images={viewingImages?.images || []}
+        currentIndex={viewingImages?.currentIndex || 0}
+        onClose={() => setViewingImages(null)}
+        onIndexChange={(index) => setViewingImages(prev => 
+          prev ? { ...prev, currentIndex: index } : null
+        )}
+      />
     </View>
   );
 };

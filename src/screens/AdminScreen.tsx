@@ -10,6 +10,7 @@ import { adminPanelStyles } from '../styles/AdminPanel.styles';
 import { colors } from '../styles/theme';
 import { ProductEditModal } from '../components/ProductEditModal';
 import { ProductImage } from '../components/ProductImage';
+import { ImageViewer } from '../components/ImageViewer';
 import { useTranslation } from 'react-i18next';
 
 interface AdminScreenProps {
@@ -27,6 +28,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
   const [selectedTab, setSelectedTab] = useState<'reports' | 'users' | 'products'>('reports');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewingImages, setViewingImages] = useState<{images: string[], currentIndex: number} | null>(null);
 
   useEffect(() => {
     loadData();
@@ -300,6 +302,31 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
                         Notes: {report.notes}
                       </Text>
                     )}
+                    
+                    {/* Report Images */}
+                    {report.images && report.images.length > 0 && (
+                      <View style={adminPanelStyles.reportImagesContainer}>
+                        <Text style={adminPanelStyles.reportImagesLabel}>Images:</Text>
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          style={adminPanelStyles.reportImagesScrollView}
+                        >
+                          {report.images.map((imageUrl, index) => (
+                            <ProductImage
+                              key={index}
+                              imageUrl={imageUrl}
+                              style={adminPanelStyles.reportImage}
+                              fallbackIcon="📷"
+                              onPress={() => setViewingImages({
+                                images: report.images!,
+                                currentIndex: index
+                              })}
+                            />
+                          ))}
+                        </ScrollView>
+                      </View>
+                    )}
                   </View>
                   
                   <View style={adminPanelStyles.actionButtons}>
@@ -432,6 +459,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
                         imageUrl={product.images[0]}
                         style={adminPanelStyles.productImage}
                         fallbackIcon="📦"
+                        onPress={() => setViewingImages({
+                          images: product.images!,
+                          currentIndex: 0
+                        })}
                       />
                     </View>
                   )}
@@ -483,6 +514,16 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
         product={editingProduct}
         onClose={() => setEditingProduct(null)}
         onSave={handleSaveProduct}
+      />
+
+      <ImageViewer
+        visible={viewingImages !== null}
+        images={viewingImages?.images || []}
+        currentIndex={viewingImages?.currentIndex || 0}
+        onClose={() => setViewingImages(null)}
+        onIndexChange={(index) => setViewingImages(prev => 
+          prev ? { ...prev, currentIndex: index } : null
+        )}
       />
     </View>
   );
