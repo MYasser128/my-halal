@@ -26,7 +26,6 @@ interface ProductData {
     valid: boolean;
   }>;
   manufacturer?: string;
-  country?: string;
   category?: string;
   description?: string;
   lastUpdated?: Date;
@@ -192,12 +191,6 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
               </View>
             )}
             
-            {product.country && (
-              <View style={productDetailStyles.detailRow}>
-                <Text style={productDetailStyles.detailLabel}>{t('product.country')}:</Text>
-                <Text style={productDetailStyles.detailValue}>{product.country}</Text>
-              </View>
-            )}
             
             {product.category && (
               <View style={productDetailStyles.detailRow}>

@@ -19,7 +19,6 @@ export interface Product {
   name: string;
   halalStates: {
     default: 'halal' | 'haram' | 'unknown';
-    perCountry?: Record<string, string>;
   };
   ingredients?: string[];
   certifications?: Array<{
@@ -29,7 +28,6 @@ export interface Product {
     valid: boolean;
   }>;
   manufacturer?: string;
-  country?: string;
   category?: string;
   description?: string;
   lastUpdated?: any;
@@ -49,11 +47,9 @@ export interface ProductUpdateData {
   name?: string;
   halalStates?: {
     default: 'halal' | 'haram' | 'unknown';
-    perCountry?: Record<string, string>;
   };
   ingredients?: string[];
   manufacturer?: string;
-  country?: string;
   category?: string;
   description?: string;
   lastUpdated?: any;

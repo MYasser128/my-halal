@@ -19,7 +19,6 @@ export interface Report {
   name: string;
   status: 'pending' | 'approved' | 'rejected';
   suggestedState: 'halal' | 'haram' | 'unknown';
-  country: string;
   notes?: string;
   reporterId: string;
   reviewedBy?: string;
@@ -32,7 +31,6 @@ export interface Product {
   barcode: string;
   name: string;
   lastUpdated: any;
-  country: string;
   createdByAdmin?: string;
   verificationHistory: Array<{
     adminId: string;
@@ -42,7 +40,6 @@ export interface Product {
   }>;
   halalStates: {
     default: string;
-    perCountry: Record<string, string>;
   };
 }
 
@@ -105,7 +102,6 @@ export const approveReport = async (
     const productData: Partial<Product> = {
       barcode,
       name: reportData.name || undefined,
-      country: reportData.country || undefined,
       lastUpdated: serverTimestamp(),
       createdByAdmin: adminId,
       verificationHistory: [{
@@ -115,10 +111,7 @@ export const approveReport = async (
         timestamp: new Date()
       }],
       halalStates: {
-        default: reportData.suggestedState || 'unknown',
-        perCountry: {
-          [reportData.country || '']: reportData.suggestedState || 'unknown'
-        }
+        default: reportData.suggestedState || 'unknown'
       }
     };
     

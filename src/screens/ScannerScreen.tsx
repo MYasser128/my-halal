@@ -204,7 +204,6 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
         suggestedState: state,
         status: 'pending',
         reporterId: 'anonymous', // You might want to get this from auth
-        country: 'Unknown',
         name: 'Unknown Product',
         notes: '',
         createdAt: new Date(),

@@ -285,10 +285,6 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
                       <Text style={adminPanelStyles.reportDetailLabel}>Status:</Text>
                       <Text style={adminPanelStyles.reportDetailValue}>{report.suggestedState}</Text>
                     </View>
-                    <View style={adminPanelStyles.reportDetailRow}>
-                      <Text style={adminPanelStyles.reportDetailLabel}>Country:</Text>
-                      <Text style={adminPanelStyles.reportDetailValue}>{report.country}</Text>
-                    </View>
                     {report.notes && (
                       <Text style={adminPanelStyles.reportNotes}>
                         Notes: {report.notes}
@@ -422,12 +418,6 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
                       <Text style={adminPanelStyles.productDetailLabel}>{t('admin.barcode')}:</Text>
                       <Text style={adminPanelStyles.productDetailValue}>{product.barcode}</Text>
                     </View>
-                    {product.country && (
-                      <View style={adminPanelStyles.productDetailRow}>
-                        <Text style={adminPanelStyles.productDetailLabel}>{t('admin.country')}:</Text>
-                        <Text style={adminPanelStyles.productDetailValue}>{product.country}</Text>
-                      </View>
-                    )}
                     {product.manufacturer && (
                       <View style={adminPanelStyles.productDetailRow}>
                         <Text style={adminPanelStyles.productDetailLabel}>{t('admin.manufacturer')}:</Text>

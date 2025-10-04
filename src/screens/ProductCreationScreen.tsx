@@ -15,9 +15,6 @@ interface ProductCreationScreenProps {
   onNavigateToLogin?: () => void;
 }
 
-const COUNTRIES = [
-  'Italy', 'Egypt'
-];
 
 export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({ 
   barcode, 
@@ -30,7 +27,6 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
   const [formData, setFormData] = useState({
     name: '',
     halalStatus: 'halal' as 'halal' | 'haram',
-    country: 'Italy',
   });
   
   const [loading, setLoading] = useState(false);
@@ -85,9 +81,6 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
       newErrors.name = 'Product name is required';
     }
 
-    if (!formData.country) {
-      newErrors.country = 'Country is required';
-    }
 
     // Halal status validation removed since we only have halal/haram options
 
@@ -97,7 +90,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      Alert.alert('Validation Error', 'Please fill in the product name and choose a country');
+      Alert.alert('Validation Error', 'Please fill in the product name');
       return;
     }
 
@@ -125,11 +118,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
           }],
           halalStates: {
             default: formData.halalStatus,
-            perCountry: formData.country ? {
-              [formData.country]: formData.halalStatus
-            } : undefined
           },
-          country: formData.country || undefined,
           createdAt: new Date(),
           status: 'verified',
         };
@@ -151,7 +140,6 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
         const reportData = {
           barcode: barcode,
           name: formData.name.trim(),
-          country: formData.country,
           suggestedState: formData.halalStatus,
           reporterId: user.uid,
           reporterEmail: user.email || '',
@@ -289,30 +277,6 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
             {errors.halalStatus && <Text style={productCreationStyles.errorText}>{errors.halalStatus}</Text>}
           </View>
 
-          {/* Country */}
-          <View style={productCreationStyles.countrySection}>
-            <Text style={productCreationStyles.countryTitle}>Country *</Text>
-            <View style={productCreationStyles.statusOptions}>
-              {COUNTRIES.map((country) => (
-                <TouchableOpacity
-                  key={country}
-                  style={[
-                    productCreationStyles.statusOption,
-                    formData.country === country && productCreationStyles.statusOptionSelected
-                  ]}
-                  onPress={() => updateFormData('country', country)}
-                >
-                  <Text style={[
-                    productCreationStyles.statusOptionText,
-                    formData.country === country && productCreationStyles.statusOptionTextSelected
-                  ]}>
-                    {country === 'Italy' ? '🇮🇹 Italy' : '🇪🇬 Egypt'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            {errors.country && <Text style={productCreationStyles.errorText}>{errors.country}</Text>}
-          </View>
 
           {/* Action Buttons */}
           <View style={productCreationStyles.actionButtons}>

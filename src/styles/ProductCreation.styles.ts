@@ -167,48 +167,6 @@ export const productCreationStyles = StyleSheet.create({
     fontWeight: typography.fontWeight.semibold,
   },
   
-  // Country selection
-  countrySection: {
-    marginBottom: spacing[6],
-  },
-  
-  countryTitle: {
-    ...textStyles.h4,
-    color: colors.text.primary,
-    marginBottom: spacing[4],
-  },
-  
-  countryOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  
-  countryOption: {
-    width: '48%',
-    marginBottom: spacing[2],
-    padding: spacing[3],
-    borderRadius: borderRadius.base,
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    alignItems: 'center',
-  },
-  
-  countryOptionSelected: {
-    borderColor: colors.primary[500],
-    backgroundColor: colors.primary[50],
-  },
-  
-  countryOptionText: {
-    ...textStyles.caption,
-    color: colors.text.secondary,
-    textAlign: 'center',
-  },
-  
-  countryOptionTextSelected: {
-    color: colors.primary[700],
-    fontWeight: typography.fontWeight.semibold,
-  },
   
   // Action buttons
   actionButtons: {

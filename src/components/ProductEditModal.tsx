@@ -15,16 +15,6 @@ import { adminPanelStyles } from '../styles/AdminPanel.styles';
 import { colors } from '../styles/theme';
 import { useTranslation } from 'react-i18next';
 
-const EUROPEAN_COUNTRIES = [
-  'Albania', 'Andorra', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina',
-  'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia',
-  'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland',
-  'Italy', 'Latvia', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Malta',
-  'Moldova', 'Monaco', 'Montenegro', 'Netherlands', 'North Macedonia', 'Norway',
-  'Poland', 'Portugal', 'Romania', 'Russia', 'San Marino', 'Serbia', 'Slovakia',
-  'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom',
-  'Vatican City'
-];
 
 interface ProductEditModalProps {
   visible: boolean;
@@ -43,15 +33,8 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const [formData, setFormData] = useState({
     name: '',
     halalStatus: 'halal' as 'halal' | 'haram',
-    country: 'Italy',
   });
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-  const [countrySearch, setCountrySearch] = useState('');
 
-  // Filter countries based on search
-  const filteredCountries = EUROPEAN_COUNTRIES.filter(country =>
-    country.toLowerCase().includes(countrySearch.toLowerCase())
-  );
 
   useEffect(() => {
     if (product) {
@@ -60,7 +43,6 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
         halalStatus: (product.halalStates?.default === 'halal' || product.halalStates?.default === 'haram') 
           ? product.halalStates.default 
           : 'halal',
-        country: product.country || 'Italy',
       });
     }
   }, [product]);
@@ -77,9 +59,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
       name: formData.name.trim(),
       halalStates: {
         default: formData.halalStatus,
-        perCountry: formData.country ? { [formData.country]: formData.halalStatus } : undefined,
       },
-      country: formData.country || undefined,
       lastUpdated: new Date(),
     };
 
@@ -90,10 +70,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
     setFormData({
       name: '',
       halalStatus: 'halal',
-      country: 'Italy',
     });
-    setShowCountryDropdown(false);
-    setCountrySearch('');
     onClose();
   };
 
@@ -158,72 +135,6 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
               </View>
             </View>
 
-            <View style={[adminPanelStyles.formGroup, { position: 'relative' }]}>
-              <Text style={adminPanelStyles.formLabel}>{t('admin.country')}</Text>
-              <TouchableOpacity
-                style={[adminPanelStyles.formInput, { flexDirection: 'row', alignItems: 'center' }]}
-                onPress={() => setShowCountryDropdown(!showCountryDropdown)}
-              >
-                <Text style={[
-                  adminPanelStyles.formInputText,
-                  !formData.country && { color: colors.text.tertiary }
-                ]}>
-                  {formData.country || t('admin.country')}
-                </Text>
-                <Text style={adminPanelStyles.dropdownArrow}>
-                  {showCountryDropdown ? '▲' : '▼'}
-                </Text>
-              </TouchableOpacity>
-              
-              {showCountryDropdown && (
-                <View style={adminPanelStyles.dropdownContainer}>
-                  <View style={adminPanelStyles.dropdownSearchContainer}>
-                    <TextInput
-                      style={adminPanelStyles.dropdownSearchInput}
-                      placeholder="Search countries..."
-                      value={countrySearch}
-                      onChangeText={setCountrySearch}
-                      placeholderTextColor={colors.text.tertiary}
-                      autoFocus={true}
-                    />
-                  </View>
-                  <ScrollView 
-                    style={adminPanelStyles.dropdownList}
-                    nestedScrollEnabled={true}
-                    showsVerticalScrollIndicator={true}
-                    bounces={false}
-                  >
-                    {filteredCountries.length > 0 ? (
-                      filteredCountries.map((country) => (
-                        <TouchableOpacity
-                          key={country}
-                          style={[
-                            adminPanelStyles.dropdownItem,
-                            formData.country === country && adminPanelStyles.dropdownItemSelected
-                          ]}
-                          onPress={() => {
-                            setFormData({ ...formData, country });
-                            setShowCountryDropdown(false);
-                            setCountrySearch('');
-                          }}
-                        >
-                          <Text style={[
-                            adminPanelStyles.dropdownItemText,
-                            formData.country === country && adminPanelStyles.dropdownItemTextSelected
-                          ]}>
-                            {country}
-                          </Text>
-                        </TouchableOpacity>
-                      ))
-                    ) : (
-                      <View style={adminPanelStyles.noResultsContainer}>
-                        <Text style={adminPanelStyles.noResultsText}>No countries found</Text>
-                      </View>
-                    )}
-                  </ScrollView>
-                </View>
-              )}
-            </View>
 
           </ScrollView>
 
