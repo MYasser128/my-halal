@@ -53,7 +53,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Product name is required';
+      newErrors.name = t('productCreation.productNameRequired');
     }
 
 
@@ -65,7 +65,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      Alert.alert('Validation Error', 'Please fill in the product name');
+      Alert.alert(t('productCreation.validationError'), t('productCreation.fillProductName'));
       return;
     }
 
@@ -103,11 +103,11 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
           await setDoc(doc(db, "products", cleanBarcode), productData);
 
           Alert.alert(
-            'Success!', 
-            'Product has been added directly to the database as an admin.',
+            t('productCreation.success'), 
+            t('productCreation.productAddedDirectly'),
             [
               {
-                text: 'OK',
+                text: t('common.ok'),
                 onPress: onSuccess,
               }
             ]
@@ -131,11 +131,11 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
           await setDoc(doc(db, "reports", reportId), reportData);
 
           Alert.alert(
-            'Success!', 
-            'Product has been submitted for admin approval. You will be notified once it\'s reviewed.',
+            t('productCreation.success'), 
+            t('productCreation.productSubmittedForApproval'),
             [
               {
-                text: 'OK',
+                text: t('common.ok'),
                 onPress: onSuccess,
               }
             ]
@@ -158,11 +158,11 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
         await setDoc(doc(db, "reports", reportId), reportData);
 
         Alert.alert(
-          'Success!', 
-          'Product has been submitted for admin approval. Thank you for your contribution!',
+          t('productCreation.success'), 
+          t('productCreation.productSubmittedAnonymous'),
           [
             {
-              text: 'OK',
+              text: t('common.ok'),
               onPress: onSuccess,
             }
           ]
@@ -170,7 +170,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
       }
     } catch (error) {
       console.error('Error creating product:', error);
-      Alert.alert('Error', 'Failed to create product. Please try again.');
+      Alert.alert(t('productCreation.error'), t('productCreation.failedToCreateProduct'));
     } finally {
       setLoading(false);
     }
@@ -189,24 +189,24 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
       <View style={productCreationStyles.header}>
         <View style={productCreationStyles.headerContent}>
           <TouchableOpacity style={productCreationStyles.backButton} onPress={onBack}>
-            <Text style={productCreationStyles.backButtonText}>← Back</Text>
+            <Text style={productCreationStyles.backButtonText}>← {t('common.back')}</Text>
           </TouchableOpacity>
-          <Text style={productCreationStyles.headerTitle}>Add New Product</Text>
+          <Text style={productCreationStyles.headerTitle}>{t('productCreation.addNewProduct')}</Text>
         </View>
       </View>
 
       <ScrollView style={productCreationStyles.content}>
         <View style={productCreationStyles.formContainer}>
           <Text style={productCreationStyles.formTitle}>
-            {isUserAdmin ? 'Add New Product (Admin)' : 
-             isAnonymous ? 'Report Product (Anonymous)' : 'Submit Product for Review'}
+            {isUserAdmin ? t('productCreation.addNewProductAdmin') : 
+             isAnonymous ? t('productCreation.reportProductAnonymous') : t('productCreation.submitProductForReview')}
           </Text>
           <Text style={productCreationStyles.formSubtitle}>
             {isUserAdmin 
-              ? 'Add this product directly to the database' 
+              ? t('productCreation.addProductDirectly')
               : isAnonymous
-              ? 'Submit this product for admin approval (no login required)'
-              : 'Submit this product for admin approval'
+              ? t('productCreation.submitForApprovalAnonymous')
+              : t('productCreation.submitForApproval')
             }
           </Text>
           
@@ -225,7 +225,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
                 fontSize: 12,
                 color: '#166534',
                 fontWeight: '600',
-              }}>👑 Admin Mode</Text>
+              }}>{t('productCreation.adminMode')}</Text>
             </View>
           )}
           
@@ -244,24 +244,24 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
                 fontSize: 12,
                 color: '#92400e',
                 fontWeight: '600',
-              }}>👤 Anonymous Mode</Text>
+              }}>{t('productCreation.anonymousMode')}</Text>
             </View>
           )}
           
           {/* Barcode Display */}
           <View style={productCreationStyles.barcodeSection}>
-            <Text style={productCreationStyles.barcodeLabel}>Scanned Barcode</Text>
+            <Text style={productCreationStyles.barcodeLabel}>{t('productCreation.scannedBarcode')}</Text>
             <Text style={productCreationStyles.barcodeValue}>{barcode}</Text>
           </View>
 
           {/* Product Name */}
           <View style={productCreationStyles.inputContainer}>
-            <Text style={productCreationStyles.label}>Product Name *</Text>
+            <Text style={productCreationStyles.label}>{t('productCreation.productName')} *</Text>
             <TextInput
               style={[productCreationStyles.input, errors.name && productCreationStyles.inputError]}
               value={formData.name}
               onChangeText={(value) => updateFormData('name', value)}
-              placeholder="Enter product name"
+              placeholder={t('productCreation.enterProductName')}
               placeholderTextColor="#9CA3AF"
             />
             {errors.name && <Text style={productCreationStyles.errorText}>{errors.name}</Text>}
@@ -269,7 +269,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
 
           {/* Halal Status */}
           <View style={productCreationStyles.statusSection}>
-            <Text style={productCreationStyles.statusTitle}>Halal Status *</Text>
+            <Text style={productCreationStyles.statusTitle}>{t('productCreation.halalStatus')} *</Text>
             <View style={productCreationStyles.statusOptions}>
               <TouchableOpacity
                 style={[
@@ -282,7 +282,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
                   productCreationStyles.statusOptionText,
                   formData.halalStatus === 'halal' && productCreationStyles.statusOptionTextSelected
                 ]}>
-                  ✅ Halal
+                  {t('productCreation.halal')}
                 </Text>
               </TouchableOpacity>
               
@@ -297,7 +297,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
                   productCreationStyles.statusOptionText,
                   formData.halalStatus === 'haram' && productCreationStyles.statusOptionTextSelected
                 ]}>
-                  ❌ Haram
+                  {t('productCreation.haram')}
                 </Text>
               </TouchableOpacity>
               
@@ -312,7 +312,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
                   productCreationStyles.statusOptionText,
                   formData.halalStatus === 'suspicious' && productCreationStyles.statusOptionTextSelected
                 ]}>
-                  ⚠️ Suspicious
+                  {t('productCreation.suspicious')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -341,18 +341,18 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
               {loading ? (
                 <View style={productCreationStyles.loadingContainer}>
                   <ActivityIndicator color="#ffffff" size="small" />
-                  <Text style={productCreationStyles.loadingText}>Creating...</Text>
+                  <Text style={productCreationStyles.loadingText}>{t('productCreation.creating')}</Text>
                 </View>
               ) : (
                 <Text style={productCreationStyles.submitButtonText}>
-                  {isUserAdmin ? 'Add Product' : 
-                   isAnonymous ? 'Report Product' : 'Submit for Review'}
+                  {isUserAdmin ? t('productCreation.addProduct') : 
+                   isAnonymous ? t('productCreation.reportProduct') : t('productCreation.submitForReview')}
                 </Text>
               )}
             </TouchableOpacity>
             
             <TouchableOpacity style={productCreationStyles.cancelButton} onPress={onBack}>
-              <Text style={productCreationStyles.cancelButtonText}>Cancel</Text>
+              <Text style={productCreationStyles.cancelButtonText}>{t('productCreation.cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

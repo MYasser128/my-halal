@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { pickImage, takePhoto, uploadImageToStorage, ImageUploadResult } from '../services/imageUpload';
 import { colors } from '../styles/theme';
+import { useTranslation } from 'react-i18next';
 
 interface ImageUploadProps {
   images: string[];
@@ -28,6 +29,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   maxImages = 5,
   disabled = false,
 }) => {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -35,12 +37,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     if (disabled || uploading) return;
 
     Alert.alert(
-      'Select Image',
-      'Choose how you want to add an image',
+      t('imageUpload.selectImage'),
+      t('imageUpload.chooseImageMethod'),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Camera', onPress: handleTakePhoto },
-        { text: 'Gallery', onPress: handleSelectFromGallery },
+        { text: t('imageUpload.cancel'), style: 'cancel' },
+        { text: t('imageUpload.camera'), onPress: handleTakePhoto },
+        { text: t('imageUpload.gallery'), onPress: handleSelectFromGallery },
       ]
     );
   };
@@ -55,7 +57,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image. Please try again.');
+      Alert.alert(t('imageUpload.error'), t('imageUpload.failedToPickImage'));
     }
   };
 
@@ -69,13 +71,13 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       }
     } catch (error) {
       console.error('Error taking photo:', error);
-      Alert.alert('Error', 'Failed to take photo. Please try again.');
+      Alert.alert(t('imageUpload.error'), t('imageUpload.failedToTakePhoto'));
     }
   };
 
   const handleUploadImage = async (imageUri: string) => {
     if (images.length >= maxImages) {
-      Alert.alert('Limit Reached', `You can only upload up to ${maxImages} images.`);
+      Alert.alert(t('imageUpload.limitReached'), t('imageUpload.maxImagesReached', { max: maxImages }));
       return;
     }
 
@@ -91,13 +93,13 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
       if (result.success && result.url) {
         onImagesChange([...images, result.url]);
-        Alert.alert('Success', 'Image uploaded successfully!');
+        Alert.alert(t('imageUpload.success'), t('imageUpload.imageUploadedSuccess'));
       } else {
-        Alert.alert('Error', result.error || 'Failed to upload image');
+        Alert.alert(t('imageUpload.error'), result.error || t('imageUpload.failedToUploadImage'));
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      Alert.alert('Error', 'Failed to upload image. Please try again.');
+      Alert.alert(t('imageUpload.error'), t('imageUpload.failedToUploadImage'));
     } finally {
       setUploading(false);
       setUploadProgress(0);
@@ -108,12 +110,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     if (disabled) return;
 
     Alert.alert(
-      'Remove Image',
-      'Are you sure you want to remove this image?',
+      t('imageUpload.removeImage'),
+      t('imageUpload.removeImageConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('imageUpload.cancel'), style: 'cancel' },
         {
-          text: 'Remove',
+          text: t('imageUpload.remove'),
           style: 'destructive',
           onPress: () => {
             const newImages = images.filter((_, i) => i !== index);
@@ -143,9 +145,9 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Product Images</Text>
+      <Text style={styles.label}>{t('imageUpload.productImages')}</Text>
       <Text style={styles.subLabel}>
-        {images.length}/{maxImages} images uploaded
+        {t('imageUpload.imagesUploaded', { current: images.length, max: maxImages })}
       </Text>
 
       {images.length > 0 && (
@@ -168,13 +170,13 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             <View style={styles.uploadingContainer}>
               <ActivityIndicator size="small" color={colors.primary[500]} />
               <Text style={styles.uploadingText}>
-                Uploading... {Math.round(uploadProgress)}%
+                {t('imageUpload.uploadingProgress', { progress: Math.round(uploadProgress) })}
               </Text>
             </View>
           ) : (
             <View style={styles.uploadContent}>
               <Text style={styles.uploadIcon}>📷</Text>
-              <Text style={styles.uploadText}>Add Image</Text>
+              <Text style={styles.uploadText}>{t('imageUpload.addImage')}</Text>
             </View>
           )}
         </TouchableOpacity>
@@ -183,9 +185,9 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       {images.length === 0 && !uploading && (
         <View style={styles.placeholderContainer}>
           <Text style={styles.placeholderIcon}>🖼️</Text>
-          <Text style={styles.placeholderText}>No images uploaded</Text>
+          <Text style={styles.placeholderText}>{t('imageUpload.noImagesUploaded')}</Text>
           <Text style={styles.placeholderSubtext}>
-            Tap "Add Image" to upload product photos
+            {t('imageUpload.tapToUpload')}
           </Text>
         </View>
       )}

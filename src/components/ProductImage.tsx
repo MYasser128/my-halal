@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { colors } from '../styles/theme';
+import { useTranslation } from 'react-i18next';
 
 interface ProductImageProps {
   imageUrl: string;
@@ -25,6 +26,7 @@ export const ProductImage: React.FC<ProductImageProps> = ({
   showPlaceholder = true,
   onPress,
 }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -41,7 +43,7 @@ export const ProductImage: React.FC<ProductImageProps> = ({
   const renderPlaceholder = () => (
     <View style={[styles.placeholder, style]}>
       <Text style={styles.placeholderIcon}>{fallbackIcon}</Text>
-      <Text style={styles.placeholderText}>No Image</Text>
+      <Text style={styles.placeholderText}>{t('productImage.noImage')}</Text>
     </View>
   );
 
