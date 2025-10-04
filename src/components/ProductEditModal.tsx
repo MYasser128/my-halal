@@ -14,6 +14,7 @@ import { Product, ProductUpdateData } from '../services/products';
 import { adminPanelStyles } from '../styles/AdminPanel.styles';
 import { colors } from '../styles/theme';
 import { useTranslation } from 'react-i18next';
+import { ImageUpload } from './ImageUpload';
 
 
 interface ProductEditModalProps {
@@ -34,6 +35,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
     name: '',
     halalStatus: 'halal' as 'halal' | 'haram' | 'suspicious',
   });
+  const [images, setImages] = useState<string[]>([]);
 
 
   useEffect(() => {
@@ -44,6 +46,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
           ? product.halalStates.default 
           : 'halal',
       });
+      setImages(product.images || []);
     }
   }, [product]);
 
@@ -60,6 +63,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
       halalStates: {
         default: formData.halalStatus,
       },
+      images: images.length > 0 ? images : undefined,
       lastUpdated: new Date(),
     };
 
@@ -71,6 +75,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
       name: '',
       halalStatus: 'halal',
     });
+    setImages([]);
     onClose();
   };
 
@@ -136,6 +141,12 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
               </View>
             </View>
 
+            <ImageUpload
+              images={images}
+              onImagesChange={setImages}
+              productId={product.id}
+              maxImages={5}
+            />
 
           </ScrollView>
 

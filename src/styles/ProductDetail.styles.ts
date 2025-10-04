@@ -273,4 +273,21 @@ export const productDetailStyles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: typography.lineHeight.relaxed * typography.fontSize.base,
   },
+
+  // Image section
+  imagesSection: {
+    marginBottom: spacing[6],
+  },
+
+  imagesScrollView: {
+    marginTop: spacing[3],
+  },
+
+  productImage: {
+    width: 120,
+    height: 120,
+    borderRadius: borderRadius.base,
+    marginRight: spacing[3],
+    backgroundColor: colors.background.tertiary,
+  },
 });

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Image, Dimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { productDetailStyles } from '../styles/ProductDetail.styles';
+import { ProductImage } from '../components/ProductImage';
+import { ImageViewer } from '../components/ImageViewer';
 
 interface ProductDetailScreenProps {
   barcode: string;
@@ -28,6 +30,7 @@ interface ProductData {
   manufacturer?: string;
   category?: string;
   description?: string;
+  images?: string[];
   lastUpdated?: Date;
 }
 
@@ -40,6 +43,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   const [product, setProduct] = useState<ProductData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewingImages, setViewingImages] = useState<{images: string[], currentIndex: number} | null>(null);
 
   useEffect(() => {
     loadProduct();
@@ -169,6 +173,30 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
       </View>
 
       <ScrollView style={productDetailStyles.content}>
+        {/* Product Images */}
+        {product.images && product.images.length > 0 && (
+          <View style={productDetailStyles.imagesSection}>
+            <Text style={productDetailStyles.sectionTitle}>{t('product.images')}</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={productDetailStyles.imagesScrollView}
+            >
+              {product.images.map((imageUrl, index) => (
+                <ProductImage
+                  key={index}
+                  imageUrl={imageUrl}
+                  style={productDetailStyles.productImage}
+                  onPress={() => setViewingImages({
+                    images: product.images!,
+                    currentIndex: index
+                  })}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
         {/* Product Info Card */}
         <View style={productDetailStyles.productCard}>
           <View style={productDetailStyles.productHeader}>
@@ -267,6 +295,16 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <ImageViewer
+        visible={viewingImages !== null}
+        images={viewingImages?.images || []}
+        currentIndex={viewingImages?.currentIndex || 0}
+        onClose={() => setViewingImages(null)}
+        onIndexChange={(index) => setViewingImages(prev => 
+          prev ? { ...prev, currentIndex: index } : null
+        )}
+      />
     </View>
   );
 };
