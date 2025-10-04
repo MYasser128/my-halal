@@ -285,6 +285,15 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
                       <Text style={adminPanelStyles.reportDetailLabel}>Status:</Text>
                       <Text style={adminPanelStyles.reportDetailValue}>{report.suggestedState}</Text>
                     </View>
+                    <View style={adminPanelStyles.reportDetailRow}>
+                      <Text style={adminPanelStyles.reportDetailLabel}>Reporter:</Text>
+                      <Text style={adminPanelStyles.reportDetailValue}>
+                        {report.reporterId ? 
+                          (report.reporterEmail || `User ID: ${report.reporterId}`) : 
+                          'Anonymous User'
+                        }
+                      </Text>
+                    </View>
                     {report.notes && (
                       <Text style={adminPanelStyles.reportNotes}>
                         Notes: {report.notes}

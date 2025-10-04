@@ -203,9 +203,8 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
         barcode: barcodeData,
         suggestedState: state,
         status: 'pending',
-        reporterId: 'anonymous', // You might want to get this from auth
         name: 'Unknown Product',
-        notes: '',
+        notes: 'Quick report from scanner',
         createdAt: new Date(),
         updatedAt: new Date(),
       });

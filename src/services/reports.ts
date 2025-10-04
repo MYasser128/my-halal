@@ -20,7 +20,8 @@ export interface Report {
   status: 'pending' | 'approved' | 'rejected';
   suggestedState: 'halal' | 'haram' | 'unknown';
   notes?: string;
-  reporterId: string;
+  reporterId?: string;
+  reporterEmail?: string;
   reviewedBy?: string;
   createdAt: any;
   updatedAt: any;

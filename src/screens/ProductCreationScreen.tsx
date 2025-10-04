@@ -44,35 +44,8 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
     checkAdminStatus();
   }, [user]);
 
-  // Show login required message for guest users
-  if (!user) {
-    return (
-      <View style={productCreationStyles.container}>
-        <View style={productCreationStyles.header}>
-          <TouchableOpacity style={productCreationStyles.backButton} onPress={onBack}>
-            <Text style={productCreationStyles.backButtonText}>← {t('common.back')}</Text>
-          </TouchableOpacity>
-        </View>
-        
-        <View style={productCreationStyles.content}>
-          <View style={productCreationStyles.loginRequiredCard}>
-            <Text style={productCreationStyles.loginRequiredTitle}>{t('productCreation.loginRequired')}</Text>
-            <Text style={productCreationStyles.loginRequiredDescription}>
-              {t('productCreation.loginRequiredDescription')}
-            </Text>
-            <Text style={productCreationStyles.barcodeInfo}>
-              {t('productCreation.barcode')}: {barcode}
-            </Text>
-            {onNavigateToLogin && (
-              <TouchableOpacity style={productCreationStyles.loginButton} onPress={onNavigateToLogin}>
-                <Text style={productCreationStyles.loginButtonText}>{t('auth.signIn')}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      </View>
-    );
-  }
+  // Show anonymous reporting notice for guest users
+  const isAnonymous = !user;
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -97,54 +70,81 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
     setLoading(true);
     
     try {
-      // Check if user is admin
-      const userIsAdmin = await isAdmin(user);
-      
       // Clean the barcode data to make it a valid document ID
       const cleanBarcode = barcode.replace(/[^a-zA-Z0-9_-]/g, '_');
       
-      if (userIsAdmin) {
-        // Admin: Add directly to products collection with same structure as approveReport
-        const productData = {
-          barcode: barcode,
-          name: formData.name.trim(),
-          lastUpdated: new Date(),
-          createdByAdmin: user.uid,
-          verificationHistory: [{
-            adminId: user.uid,
-            action: 'created',
-            notes: 'Product created directly by admin',
-            timestamp: new Date()
-          }],
-          halalStates: {
-            default: formData.halalStatus,
-          },
-          createdAt: new Date(),
-          status: 'verified',
-        };
+      if (user) {
+        // Check if user is admin
+        const userIsAdmin = await isAdmin(user);
+        
+        if (userIsAdmin) {
+          // Admin: Add directly to products collection with same structure as approveReport
+          const productData = {
+            barcode: barcode,
+            name: formData.name.trim(),
+            lastUpdated: new Date(),
+            createdByAdmin: user.uid,
+            verificationHistory: [{
+              adminId: user.uid,
+              action: 'created',
+              notes: 'Product created directly by admin',
+              timestamp: new Date()
+            }],
+            halalStates: {
+              default: formData.halalStatus,
+            },
+            createdAt: new Date(),
+            status: 'verified',
+          };
 
-        await setDoc(doc(db, "products", cleanBarcode), productData);
+          await setDoc(doc(db, "products", cleanBarcode), productData);
 
-        Alert.alert(
-          'Success!', 
-          'Product has been added directly to the database as an admin.',
-          [
-            {
-              text: 'OK',
-              onPress: onSuccess,
-            }
-          ]
-        );
+          Alert.alert(
+            'Success!', 
+            'Product has been added directly to the database as an admin.',
+            [
+              {
+                text: 'OK',
+                onPress: onSuccess,
+              }
+            ]
+          );
+        } else {
+          // Regular user: Add to reports collection for admin approval
+          const reportData = {
+            barcode: barcode,
+            name: formData.name.trim(),
+            suggestedState: formData.halalStatus,
+            reporterId: user.uid,
+            reporterEmail: user.email || '',
+            status: 'pending',
+            notes: 'Product creation request',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          const reportId = `${cleanBarcode}_${Date.now()}`;
+          await setDoc(doc(db, "reports", reportId), reportData);
+
+          Alert.alert(
+            'Success!', 
+            'Product has been submitted for admin approval. You will be notified once it\'s reviewed.',
+            [
+              {
+                text: 'OK',
+                onPress: onSuccess,
+              }
+            ]
+          );
+        }
       } else {
-        // Regular user: Add to reports collection for admin approval
+        // Anonymous user: Add to reports collection without reporterId
         const reportData = {
           barcode: barcode,
           name: formData.name.trim(),
           suggestedState: formData.halalStatus,
-          reporterId: user.uid,
-          reporterEmail: user.email || '',
           status: 'pending',
-          notes: 'Product creation request',
+          notes: 'Product creation request from anonymous user',
           createdAt: new Date(),
           updatedAt: new Date(),
         };
@@ -154,7 +154,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
 
         Alert.alert(
           'Success!', 
-          'Product has been submitted for admin approval. You will be notified once it\'s reviewed.',
+          'Product has been submitted for admin approval. Thank you for your contribution!',
           [
             {
               text: 'OK',
@@ -193,11 +193,14 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
       <ScrollView style={productCreationStyles.content}>
         <View style={productCreationStyles.formContainer}>
           <Text style={productCreationStyles.formTitle}>
-            {isUserAdmin ? 'Add New Product (Admin)' : 'Submit Product for Review'}
+            {isUserAdmin ? 'Add New Product (Admin)' : 
+             isAnonymous ? 'Report Product (Anonymous)' : 'Submit Product for Review'}
           </Text>
           <Text style={productCreationStyles.formSubtitle}>
             {isUserAdmin 
               ? 'Add this product directly to the database' 
+              : isAnonymous
+              ? 'Submit this product for admin approval (no login required)'
               : 'Submit this product for admin approval'
             }
           </Text>
@@ -218,6 +221,25 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
                 color: '#166534',
                 fontWeight: '600',
               }}>👑 Admin Mode</Text>
+            </View>
+          )}
+          
+          {isAnonymous && (
+            <View style={{
+              backgroundColor: '#fef3c7',
+              paddingVertical: 8,
+              paddingHorizontal: 16,
+              borderRadius: 20,
+              alignSelf: 'center',
+              marginBottom: 24,
+              borderWidth: 1,
+              borderColor: '#fcd34d',
+            }}>
+              <Text style={{
+                fontSize: 12,
+                color: '#92400e',
+                fontWeight: '600',
+              }}>👤 Anonymous Mode</Text>
             </View>
           )}
           
@@ -294,7 +316,8 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
                 </View>
               ) : (
                 <Text style={productCreationStyles.submitButtonText}>
-                  {isUserAdmin ? 'Add Product' : 'Submit for Review'}
+                  {isUserAdmin ? 'Add Product' : 
+                   isAnonymous ? 'Report Product' : 'Submit for Review'}
                 </Text>
               )}
             </TouchableOpacity>
