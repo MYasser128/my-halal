@@ -16,7 +16,7 @@ interface ProductData {
   name: string;
   barcode: string;
   halalStates: {
-    default: 'halal' | 'haram';
+    default: 'halal' | 'haram' | 'suspicious';
   };
   ingredients?: string[];
   certifications?: Array<{
@@ -80,6 +80,8 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
         return productDetailStyles.halalStatus;
       case 'haram':
         return productDetailStyles.haramStatus;
+      case 'suspicious':
+        return productDetailStyles.suspiciousStatus;
       default:
         return productDetailStyles.haramStatus; // Default to haram if status is unclear
     }
@@ -91,6 +93,8 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
         return t('product.halal').toUpperCase();
       case 'haram':
         return t('product.haram').toUpperCase();
+      case 'suspicious':
+        return t('product.suspicious').toUpperCase();
       default:
         return t('product.haram').toUpperCase(); // Default to haram if status is unclear
     }

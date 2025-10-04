@@ -139,16 +139,19 @@ export const productCreationStyles = StyleSheet.create({
   statusOptions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
   },
   
   statusOption: {
     flex: 1,
     marginHorizontal: spacing[1],
-    padding: spacing[4],
+    marginBottom: spacing[2],
+    padding: spacing[3],
     borderRadius: borderRadius.base,
     borderWidth: 2,
     borderColor: colors.neutral[300],
     alignItems: 'center',
+    minWidth: 100,
   },
   
   statusOptionSelected: {

@@ -80,7 +80,7 @@
     "cameraPermissionRequired": "مطلوب إذن الكاميرا",
     "cameraPermissionDescription": "نحتاج للوصول إلى كاميرتك لمسح الرموز الشريطية للمنتجات ومساعدتك في التحقق من كون المنتجات حلال.",
     "grantPermission": "منح الإذن",
-    "positionBarcodeInFrame": "ضع الرمز الشريطي داخل الإطار للمسح",
+    "positionBarcodeInFrame": "ضع الرمز الشريطي داخل الشاشة للمسح",
     "useCamera": "استخدام الكاميرا",
     "enterManually": "إدخال يدوي",
     "enterBarcodeManually": "أدخل الرمز الشريطي يدوياً",
@@ -106,6 +106,7 @@
   "product": {
     "halal": "حلال",
     "haram": "حرام",
+    "suspicious": "مشبوه",
     "unknown": "غير معروف",
     "needsVerification": "يحتاج للتحقق",
     "ingredients": "المكونات",

@@ -26,7 +26,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
-    halalStatus: 'halal' as 'halal' | 'haram',
+    halalStatus: 'halal' as 'halal' | 'haram' | 'suspicious',
   });
   
   const [loading, setLoading] = useState(false);
@@ -293,6 +293,21 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
                   formData.halalStatus === 'haram' && productCreationStyles.statusOptionTextSelected
                 ]}>
                   ❌ Haram
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  productCreationStyles.statusOption,
+                  formData.halalStatus === 'suspicious' && productCreationStyles.statusOptionSelected
+                ]}
+                onPress={() => updateFormData('halalStatus', 'suspicious')}
+              >
+                <Text style={[
+                  productCreationStyles.statusOptionText,
+                  formData.halalStatus === 'suspicious' && productCreationStyles.statusOptionTextSelected
+                ]}>
+                  ⚠️ Suspicious
                 </Text>
               </TouchableOpacity>
             </View>

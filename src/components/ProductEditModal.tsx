@@ -32,7 +32,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
-    halalStatus: 'halal' as 'halal' | 'haram',
+    halalStatus: 'halal' as 'halal' | 'haram' | 'suspicious',
   });
 
 
@@ -40,7 +40,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
     if (product) {
       setFormData({
         name: product.name || '',
-        halalStatus: (product.halalStates?.default === 'halal' || product.halalStates?.default === 'haram') 
+        halalStatus: (product.halalStates?.default === 'halal' || product.halalStates?.default === 'haram' || product.halalStates?.default === 'suspicious') 
           ? product.halalStates.default 
           : 'halal',
       });
@@ -113,6 +113,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
                 {[
                   { value: 'halal', label: t('product.halal'), color: colors.success },
                   { value: 'haram', label: t('product.haram'), color: colors.error },
+                  { value: 'suspicious', label: t('product.suspicious'), color: colors.suspicious },
                 ].map((option) => (
                   <TouchableOpacity
                     key={option.value}

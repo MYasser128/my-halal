@@ -73,7 +73,8 @@ export const colors = {
   // Status colors for halal/haram
   halal: '#22c55e',
   haram: '#ef4444',
-  unknown: '#f59e0b',
+  suspicious: '#f59e0b',
+  unknown: '#6b7280',
   pending: '#3b82f6',
 };
 

@@ -409,12 +409,14 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
                       adminPanelStyles.statusBadge,
                       product.halalStates?.default === 'halal' ? adminPanelStyles.halalBadge : 
                       product.halalStates?.default === 'haram' ? adminPanelStyles.haramBadge : 
+                      product.halalStates?.default === 'suspicious' ? adminPanelStyles.suspiciousBadge :
                       adminPanelStyles.unknownBadge
                     ]}>
                       <Text style={[
                         adminPanelStyles.statusText,
                         product.halalStates?.default === 'halal' ? adminPanelStyles.halalText : 
                         product.halalStates?.default === 'haram' ? adminPanelStyles.haramText : 
+                        product.halalStates?.default === 'suspicious' ? adminPanelStyles.suspiciousText :
                         adminPanelStyles.unknownText
                       ]}>
                         {product.halalStates?.default?.toUpperCase() || 'UNKNOWN'}

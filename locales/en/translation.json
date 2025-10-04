@@ -80,7 +80,7 @@
     "cameraPermissionRequired": "Camera Permission Required",
     "cameraPermissionDescription": "We need access to your camera to scan product barcodes and help you verify if products are halal.",
     "grantPermission": "Grant Permission",
-    "positionBarcodeInFrame": "Position the barcode within the frame to scan",
+    "positionBarcodeInFrame": "Position the barcode within the screen to scan",
     "useCamera": "Use Camera",
     "enterManually": "Enter Manually",
     "enterBarcodeManually": "Enter Barcode Manually",
@@ -106,6 +106,7 @@
   "product": {
     "halal": "Halal",
     "haram": "Haram",
+    "suspicious": "Suspicious",
     "unknown": "Unknown",
     "needsVerification": "Needs Verification",
     "ingredients": "Ingredients",

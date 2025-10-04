@@ -90,6 +90,10 @@ export const productDetailStyles = StyleSheet.create({
     backgroundColor: colors.haram,
   },
   
+  suspiciousStatus: {
+    backgroundColor: colors.suspicious,
+  },
+  
   unknownStatus: {
     backgroundColor: colors.unknown,
   },

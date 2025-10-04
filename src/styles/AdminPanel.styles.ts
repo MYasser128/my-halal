@@ -407,6 +407,12 @@ export const adminPanelStyles = StyleSheet.create({
     borderColor: colors.error,
   },
 
+  suspiciousBadge: {
+    backgroundColor: colors.suspicious + '20',
+    borderWidth: 1,
+    borderColor: colors.suspicious,
+  },
+
   unknownBadge: {
     backgroundColor: colors.warning + '20',
     borderWidth: 1,
@@ -425,6 +431,10 @@ export const adminPanelStyles = StyleSheet.create({
 
   haramText: {
     color: colors.error,
+  },
+
+  suspiciousText: {
+    color: colors.suspicious,
   },
 
   unknownText: {

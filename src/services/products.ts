@@ -18,7 +18,7 @@ export interface Product {
   barcode: string;
   name: string;
   halalStates: {
-    default: 'halal' | 'haram' | 'unknown';
+    default: 'halal' | 'haram' | 'suspicious' | 'unknown';
   };
   ingredients?: string[];
   certifications?: Array<{
@@ -46,7 +46,7 @@ export interface Product {
 export interface ProductUpdateData {
   name?: string;
   halalStates?: {
-    default: 'halal' | 'haram' | 'unknown';
+    default: 'halal' | 'haram' | 'suspicious' | 'unknown';
   };
   ingredients?: string[];
   manufacturer?: string;

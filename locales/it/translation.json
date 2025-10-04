@@ -80,7 +80,7 @@
     "cameraPermissionRequired": "Permesso Fotocamera Richiesto",
     "cameraPermissionDescription": "Abbiamo bisogno dell'accesso alla tua fotocamera per scansionare i codici a barre dei prodotti e aiutarti a verificare se i prodotti sono halal.",
     "grantPermission": "Concedi Permesso",
-    "positionBarcodeInFrame": "Posiziona il codice a barre nel riquadro per scansionare",
+    "positionBarcodeInFrame": "Posiziona il codice a barre nella schermata per scansionare",
     "useCamera": "Usa Fotocamera",
     "enterManually": "Inserisci Manualmente",
     "enterBarcodeManually": "Inserisci Codice a Barre Manualmente",
@@ -106,6 +106,7 @@
   "product": {
     "halal": "Halal",
     "haram": "Haram",
+    "suspicious": "Sospetto",
     "unknown": "Sconosciuto",
     "needsVerification": "Necessita Verifica",
     "ingredients": "Ingredienti",
