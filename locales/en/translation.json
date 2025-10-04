@@ -49,7 +49,9 @@
     "bySigningUp": "By signing up, you agree to our",
     "and": "and",
     "showPassword": "Show password",
-    "hidePassword": "Hide password"
+    "hidePassword": "Hide password",
+    "receiveUpdates": "I want to receive updates about the app",
+    "receiveUpdatesDescription": "Get notified about new features, product updates, and important announcements"
   },
   "home": {
     "title": "My Halal",

@@ -51,6 +51,7 @@ export const createUserProfile = async (user: User, additionalData: any = {}) =>
         createdAt: new Date(),
         isAdmin: false,
         lastLoginAt: new Date(),
+        receiveUpdates: additionalData.receiveUpdates || false,
         ...additionalData
       });
     } else {
@@ -77,6 +78,7 @@ export const getUserProfile = async (user: User) => {
         displayName: userData.displayName || user.displayName || user.email?.split('@')[0] || 'User',
         email: userData.email || user.email || '',
         isAdmin: userData.isAdmin || false,
+        receiveUpdates: userData.receiveUpdates || false,
       };
     }
     
@@ -84,12 +86,14 @@ export const getUserProfile = async (user: User) => {
     return {
       ...user,
       displayName: user.displayName || user.email?.split('@')[0] || 'User',
+      receiveUpdates: false,
     };
   } catch (error) {
     console.error('Error getting user profile:', error);
     return {
       ...user,
       displayName: user.displayName || user.email?.split('@')[0] || 'User',
+      receiveUpdates: false,
     };
   }
 };

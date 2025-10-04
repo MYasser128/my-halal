@@ -29,6 +29,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [receiveUpdates, setReceiveUpdates] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
@@ -50,7 +51,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
     setLoading(true);
     try {
       const userCredential = await register(email, password);
-      await createUserProfile(userCredential.user, { displayName });
+      await createUserProfile(userCredential.user, { displayName, receiveUpdates });
       
       // Get the user profile with actual display name from Firestore
       const userWithProfile = await getUserProfile(userCredential.user);
@@ -158,6 +159,23 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
               )}
             </View>
 
+            <View style={registerScreenStyles.checkboxContainer}>
+              <TouchableOpacity
+                style={[registerScreenStyles.checkbox, receiveUpdates && registerScreenStyles.checkboxChecked]}
+                onPress={() => setReceiveUpdates(!receiveUpdates)}
+              >
+                {receiveUpdates && (
+                  <Text style={{ color: '#ffffff', fontSize: 12, fontWeight: 'bold' }}>✓</Text>
+                )}
+              </TouchableOpacity>
+              <View style={{ flex: 1 }}>
+                <Text style={registerScreenStyles.checkboxText}>
+                  {t('auth.receiveUpdates')}
+                </Text>
+                
+              </View>
+            </View>
+
             <TouchableOpacity
               style={[registerScreenStyles.button, loading && registerScreenStyles.buttonDisabled]}
               onPress={handleRegister}
@@ -173,14 +191,6 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
               )}
             </TouchableOpacity>
 
-            <View style={registerScreenStyles.termsContainer}>
-              <Text style={registerScreenStyles.termsText}>
-                {t('auth.bySigningUp')}{' '}
-                <Text style={registerScreenStyles.termsLink}>{t('auth.termsOfService')}</Text>
-                {' '}{t('auth.and')}{' '}
-                <Text style={registerScreenStyles.termsLink}>{t('auth.privacyPolicy')}</Text>
-              </Text>
-            </View>
 
             <View style={registerScreenStyles.switchContainer}>
               <Text style={registerScreenStyles.switchText}>{t('auth.alreadyHaveAccount')} </Text>

@@ -215,4 +215,45 @@ export const registerScreenStyles = StyleSheet.create({
     color: colors.primary[500],
     fontWeight: typography.fontWeight.semibold,
   },
+
+  // Checkbox styles
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: spacing[4],
+    marginBottom: spacing[2],
+  },
+
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: colors.primary[500],
+    borderRadius: borderRadius.sm,
+    marginRight: spacing[3],
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+
+  checkboxChecked: {
+    backgroundColor: colors.primary[500],
+  },
+
+  checkboxText: {
+    ...textStyles.body,
+    color: colors.text.primary,
+    flex: 1,
+    lineHeight: typography.lineHeight.relaxed * typography.fontSize.base,
+    paddingTop: 0,
+    marginTop: -2
+  },
+
+  checkboxDescription: {
+    ...textStyles.caption,
+    color: colors.text.secondary,
+    marginTop: spacing[1],
+    marginLeft: spacing[8],
+    lineHeight: typography.lineHeight.relaxed * typography.fontSize.sm,
+  },
 });

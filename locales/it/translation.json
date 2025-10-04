@@ -49,7 +49,9 @@
     "bySigningUp": "Registrandoti, accetti i nostri",
     "and": "e",
     "showPassword": "Mostra password",
-    "hidePassword": "Nascondi password"
+    "hidePassword": "Nascondi password",
+    "receiveUpdates": "Voglio ricevere aggiornamenti sull'app",
+    "receiveUpdatesDescription": "Ricevi notifiche su nuove funzionalità, aggiornamenti dei prodotti e annunci importanti"
   },
   "home": {
     "title": "My Halal",
