@@ -24,8 +24,8 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'it', // Default language is Italian
-    fallbackLng: 'it', // Fallback to Italian if translation is missing
+    lng: 'en', // Default language is English
+    fallbackLng: 'en', // Fallback to English if translation is missing
     debug: __DEV__, // Enable debug mode in development
     
     interpolation: {

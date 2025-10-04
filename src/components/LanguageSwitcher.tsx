@@ -16,8 +16,8 @@ interface LanguageSwitcherProps {
 }
 
 const languages = [
-  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
   { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
   { code: 'ar', name: 'العربية', flag: '🇸🇦' },
 ];
 

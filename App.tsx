@@ -19,7 +19,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('home');
-  const [currentLanguage, setCurrentLanguage] = useState('it');
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChange(async (user) => {
