@@ -54,10 +54,10 @@
     "receiveUpdatesDescription": "Ricevi notifiche su nuove funzionalità, aggiornamenti dei prodotti e annunci importanti"
   },
   "home": {
-    "title": "My Halal",
+    "title": "HalalScan",
     "welcome": "Benvenuto",
     "welcomeGuest": "Benvenuto, Ospite!",
-    "welcomeToApp": "🕌 Benvenuto nell'App My Halal",
+    "welcomeToApp": "🕌 Benvenuto nell'App HalalScan",
     "welcomeDescription": "Il tuo compagno di fiducia per verificare i prodotti halal. Scansiona i codici a barre, controlla gli ingredienti e fai scelte informate.",
     "quickActions": "Azioni Rapide",
     "scanProduct": "📱 Scansiona Prodotto",

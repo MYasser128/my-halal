@@ -54,7 +54,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               resizeMode="contain"
             />
           </View>
-          <Text style={homeScreenStyles.title}>My Halal</Text>
+          <Text style={homeScreenStyles.title}>HalalScan</Text>
           <Text style={homeScreenStyles.subtitle}>
             {user ? `${t('home.welcome')}, ${user.displayName || user.email}!` : t('home.welcomeGuest')}
           </Text>

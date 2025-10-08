@@ -298,7 +298,7 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
                       style={styles.sidebarLogo}
                       resizeMode="contain"
                     />
-                    <Text style={styles.sidebarTitle}>My Halal</Text>
+                    <Text style={styles.sidebarTitle}>HalalScan</Text>
                   </View>
                   <TouchableOpacity style={styles.closeButton} onPress={closeSidebar}>
                     <Text style={styles.closeIcon}>✕</Text>

@@ -54,10 +54,10 @@
     "receiveUpdatesDescription": "Get notified about new features, product updates, and important announcements"
   },
   "home": {
-    "title": "My Halal",
+    "title": "HalalScan",
     "welcome": "Welcome",
     "welcomeGuest": "Welcome, Guest!",
-    "welcomeToApp": "🕌 Welcome to My Halal App",
+    "welcomeToApp": "🕌 Welcome to HalalScan App",
     "welcomeDescription": "Your trusted companion for verifying halal products. Scan barcodes, check ingredients, and make informed choices.",
     "quickActions": "Quick Actions",
     "scanProduct": "📱 Scan Product",

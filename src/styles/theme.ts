@@ -1,4 +1,4 @@
-// Modern Design System for My Halal App
+// Modern Design System for HalalScan App
 export const colors = {
   // Primary colors - Modern green palette for halal theme
   primary: {
