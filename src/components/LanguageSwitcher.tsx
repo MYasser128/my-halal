@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   Modal,
   StyleSheet,
   Dimensions,
+  BackHandler,
+  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { isRTL, getTextDirection } from '../i18n';
@@ -24,6 +26,21 @@ const languages = [
 export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ style, compact = false }) => {
   const { i18n, t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
+
+  // Handle Android back button for language modal
+  useEffect(() => {
+    const backAction = () => {
+      if (Platform.OS === 'android' && modalVisible) {
+        setModalVisible(false);
+        return true; // Prevent default behavior
+      }
+      return false; // Allow default behavior
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove();
+  }, [modalVisible]);
   const currentLanguage = i18n.language;
   const isCurrentRTL = isRTL(currentLanguage);
   const textDirection = getTextDirection(currentLanguage);

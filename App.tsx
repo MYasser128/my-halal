@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, StyleSheet, ActivityIndicator, I18nManager } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, I18nManager, BackHandler, Alert, Platform } from 'react-native';
 import { User } from 'firebase/auth';
 import { onAuthStateChange } from './src/services/auth';
 import { LoginScreen } from './src/screens/LoginScreen';
@@ -20,6 +20,7 @@ export default function App() {
   const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('home');
   const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [navigationHistory, setNavigationHistory] = useState<AppScreen[]>(['home']);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChange(async (user) => {
@@ -47,6 +48,48 @@ export default function App() {
     I18nManager.forceRTL(isRTLMode);
   }, [currentLanguage]);
 
+  // Handle Android back button
+  useEffect(() => {
+    const backAction = () => {
+      if (Platform.OS === 'android') {
+        // If we're on home screen, show exit confirmation
+        if (currentScreen === 'home') {
+          Alert.alert(
+            'Exit App',
+            'Are you sure you want to exit the app?',
+            [
+              {
+                text: 'Cancel',
+                onPress: () => null,
+                style: 'cancel',
+              },
+              {
+                text: 'Exit',
+                onPress: () => BackHandler.exitApp(),
+              },
+            ]
+          );
+          return true; // Prevent default behavior
+        }
+        
+        // If there's navigation history, go back
+        if (navigationHistory.length > 1) {
+          const newHistory = [...navigationHistory];
+          newHistory.pop(); // Remove current screen
+          const previousScreen = newHistory[newHistory.length - 1];
+          setNavigationHistory(newHistory);
+          setCurrentScreen(previousScreen);
+          return true; // Prevent default behavior
+        }
+      }
+      return false; // Allow default behavior
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove();
+  }, [currentScreen, navigationHistory]);
+
   const handleLogin = async (user: User) => {
     setUser(user);
     // Note: User profile is already created and updated in the login/register screens
@@ -55,36 +98,44 @@ export default function App() {
   const handleLogout = () => {
     setUser(null);
     setCurrentScreen('home');
+    setNavigationHistory(['home']);
   };
 
   const switchToRegister = () => {
     setAuthScreen('register');
     setCurrentScreen('register');
+    setNavigationHistory(prev => [...prev, 'register']);
   };
 
   const switchToLogin = () => {
     setAuthScreen('login');
     setCurrentScreen('login');
+    setNavigationHistory(prev => [...prev, 'login']);
   };
 
   const navigateToScanner = () => {
     setCurrentScreen('scanner');
+    setNavigationHistory(prev => [...prev, 'scanner']);
   };
 
   const navigateToHome = () => {
     setCurrentScreen('home');
+    setNavigationHistory(prev => [...prev, 'home']);
   };
 
   const navigateToAdmin = () => {
     setCurrentScreen('admin');
+    setNavigationHistory(prev => [...prev, 'admin']);
   };
 
   const navigateToLogin = () => {
     setCurrentScreen('login');
+    setNavigationHistory(prev => [...prev, 'login']);
   };
 
   const navigateToRegister = () => {
     setCurrentScreen('register');
+    setNavigationHistory(prev => [...prev, 'register']);
   };
 
   if (loading) {

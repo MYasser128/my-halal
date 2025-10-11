@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, Alert, TouchableOpacity, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Alert, TouchableOpacity, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, BackHandler } from "react-native";
 import { useTranslation } from "react-i18next";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -25,6 +25,26 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
   const [manualInputMode, setManualInputMode] = useState(false);
   const [manualBarcode, setManualBarcode] = useState('');
   const [barcodeError, setBarcodeError] = useState('');
+
+  // Handle Android back button for internal navigation
+  useEffect(() => {
+    const backAction = () => {
+      if (Platform.OS === 'android') {
+        // If not on main scanner view, go back to scanner
+        if (currentView !== 'scanner') {
+          handleBackToScanner();
+          return true; // Prevent default behavior
+        }
+        // If on main scanner view, let parent handle it (go back to home)
+        return false; // Allow default behavior
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove();
+  }, [currentView]);
 
   if (!permission) {
     return (

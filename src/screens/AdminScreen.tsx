@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, ScrollView, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ScrollView, ActivityIndicator, TextInput, BackHandler, Platform } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { setAdminStatus } from '../services/auth';
@@ -29,6 +29,31 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewingImages, setViewingImages] = useState<{images: string[], currentIndex: number} | null>(null);
+
+  // Handle Android back button for modals
+  useEffect(() => {
+    const backAction = () => {
+      if (Platform.OS === 'android') {
+        // If image viewer is open, close it
+        if (viewingImages !== null) {
+          setViewingImages(null);
+          return true; // Prevent default behavior
+        }
+        // If product edit modal is open, close it
+        if (editingProduct !== null) {
+          setEditingProduct(null);
+          return true; // Prevent default behavior
+        }
+        // If no modal is open, let parent handle it
+        return false; // Allow default behavior
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove();
+  }, [viewingImages, editingProduct]);
 
   useEffect(() => {
     loadData();

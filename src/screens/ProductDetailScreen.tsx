@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Image, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Image, Dimensions, BackHandler, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -44,6 +44,26 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewingImages, setViewingImages] = useState<{images: string[], currentIndex: number} | null>(null);
+
+  // Handle Android back button for image viewer modal
+  useEffect(() => {
+    const backAction = () => {
+      if (Platform.OS === 'android') {
+        // If image viewer is open, close it
+        if (viewingImages !== null) {
+          setViewingImages(null);
+          return true; // Prevent default behavior
+        }
+        // If no modal is open, let parent handle it
+        return false; // Allow default behavior
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove();
+  }, [viewingImages]);
 
   useEffect(() => {
     loadProduct();

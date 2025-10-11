@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   Modal,
   TouchableWithoutFeedback,
   Image,
+  BackHandler,
+  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { User } from 'firebase/auth';
@@ -38,6 +40,21 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
   const isCurrentRTL = isRTL(i18n.language);
   const [isOpen, setIsOpen] = React.useState(false);
   const [slideAnim] = React.useState(new Animated.Value(isCurrentRTL ? screenWidth : -screenWidth));
+
+  // Handle Android back button for sidebar modal
+  useEffect(() => {
+    const backAction = () => {
+      if (Platform.OS === 'android' && isOpen) {
+        closeSidebar();
+        return true; // Prevent default behavior
+      }
+      return false; // Allow default behavior
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove();
+  }, [isOpen]);
 
   const toggleSidebar = () => {
     if (isOpen) {
