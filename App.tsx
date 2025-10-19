@@ -1,34 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { View, StyleSheet, ActivityIndicator, I18nManager, BackHandler, Alert, Platform } from 'react-native';
-import { User } from 'firebase/auth';
-import { onAuthStateChange } from './src/services/auth';
-import { LoginScreen } from './src/screens/LoginScreen';
-import { RegisterScreen } from './src/screens/RegisterScreen';
-import { HomeScreen } from './src/screens/HomeScreen';
-import ScannerScreen from './src/screens/ScannerScreen';
-import { AdminScreen } from './src/screens/AdminScreen';
-import './src/i18n'; // Initialize i18n
-import { isRTL } from './src/i18n';
+import React, { useState, useEffect } from "react";
+import { StatusBar } from "expo-status-bar";
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  I18nManager,
+  BackHandler,
+  Alert,
+  Platform,
+} from "react-native";
+import { User } from "firebase/auth";
+import mobileAds from "react-native-google-mobile-ads";
+import { onAuthStateChange } from "./src/services/auth";
+import { LoginScreen } from "./src/screens/LoginScreen";
+import { RegisterScreen } from "./src/screens/RegisterScreen";
+import { HomeScreen } from "./src/screens/HomeScreen";
+import ScannerScreen from "./src/screens/ScannerScreen";
+import { AdminScreen } from "./src/screens/AdminScreen";
+import "./src/i18n"; // Initialize i18n
+import { isRTL } from "./src/i18n";
 
-type AuthScreen = 'login' | 'register';
-type AppScreen = 'home' | 'scanner' | 'admin' | 'login' | 'register';
+type AuthScreen = "login" | "register";
+type AppScreen = "home" | "scanner" | "admin" | "login" | "register";
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
-  const [currentScreen, setCurrentScreen] = useState<AppScreen>('home');
-  const [currentLanguage, setCurrentLanguage] = useState('en');
-  const [navigationHistory, setNavigationHistory] = useState<AppScreen[]>(['home']);
+  const [authScreen, setAuthScreen] = useState<AuthScreen>("login");
+  const [currentScreen, setCurrentScreen] = useState<AppScreen>("home");
+  const [currentLanguage, setCurrentLanguage] = useState("en");
+  const [navigationHistory, setNavigationHistory] = useState<AppScreen[]>([
+    "home",
+  ]);
 
   useEffect(() => {
+    // Initialize Google Mobile Ads
+    mobileAds()
+      .initialize()
+      .then((adapterStatuses) => {
+        // Initialization complete!
+        console.log("Mobile Ads initialized successfully");
+      })
+      .catch((error) => {
+        console.error("Mobile Ads initialization failed:", error);
+      });
+
     const unsubscribe = onAuthStateChange(async (user) => {
-    
-      
       if (user) {
         // Create/update user profile and get the user with proper display name
-        const { createUserProfile, getUserProfile } = await import('./src/services/auth');
+        const { createUserProfile, getUserProfile } = await import(
+          "./src/services/auth"
+        );
         await createUserProfile(user);
         const userWithProfile = await getUserProfile(user);
         setUser(userWithProfile);
@@ -51,27 +73,23 @@ export default function App() {
   // Handle Android back button
   useEffect(() => {
     const backAction = () => {
-      if (Platform.OS === 'android') {
+      if (Platform.OS === "android") {
         // If we're on home screen, show exit confirmation
-        if (currentScreen === 'home') {
-          Alert.alert(
-            'Exit App',
-            'Are you sure you want to exit the app?',
-            [
-              {
-                text: 'Cancel',
-                onPress: () => null,
-                style: 'cancel',
-              },
-              {
-                text: 'Exit',
-                onPress: () => BackHandler.exitApp(),
-              },
-            ]
-          );
+        if (currentScreen === "home") {
+          Alert.alert("Exit App", "Are you sure you want to exit the app?", [
+            {
+              text: "Cancel",
+              onPress: () => null,
+              style: "cancel",
+            },
+            {
+              text: "Exit",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]);
           return true; // Prevent default behavior
         }
-        
+
         // If there's navigation history, go back
         if (navigationHistory.length > 1) {
           const newHistory = [...navigationHistory];
@@ -85,7 +103,10 @@ export default function App() {
       return false; // Allow default behavior
     };
 
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
 
     return () => backHandler.remove();
   }, [currentScreen, navigationHistory]);
@@ -97,45 +118,45 @@ export default function App() {
 
   const handleLogout = () => {
     setUser(null);
-    setCurrentScreen('home');
-    setNavigationHistory(['home']);
+    setCurrentScreen("home");
+    setNavigationHistory(["home"]);
   };
 
   const switchToRegister = () => {
-    setAuthScreen('register');
-    setCurrentScreen('register');
-    setNavigationHistory(prev => [...prev, 'register']);
+    setAuthScreen("register");
+    setCurrentScreen("register");
+    setNavigationHistory((prev) => [...prev, "register"]);
   };
 
   const switchToLogin = () => {
-    setAuthScreen('login');
-    setCurrentScreen('login');
-    setNavigationHistory(prev => [...prev, 'login']);
+    setAuthScreen("login");
+    setCurrentScreen("login");
+    setNavigationHistory((prev) => [...prev, "login"]);
   };
 
   const navigateToScanner = () => {
-    setCurrentScreen('scanner');
-    setNavigationHistory(prev => [...prev, 'scanner']);
+    setCurrentScreen("scanner");
+    setNavigationHistory((prev) => [...prev, "scanner"]);
   };
 
   const navigateToHome = () => {
-    setCurrentScreen('home');
-    setNavigationHistory(prev => [...prev, 'home']);
+    setCurrentScreen("home");
+    setNavigationHistory((prev) => [...prev, "home"]);
   };
 
   const navigateToAdmin = () => {
-    setCurrentScreen('admin');
-    setNavigationHistory(prev => [...prev, 'admin']);
+    setCurrentScreen("admin");
+    setNavigationHistory((prev) => [...prev, "admin"]);
   };
 
   const navigateToLogin = () => {
-    setCurrentScreen('login');
-    setNavigationHistory(prev => [...prev, 'login']);
+    setCurrentScreen("login");
+    setNavigationHistory((prev) => [...prev, "login"]);
   };
 
   const navigateToRegister = () => {
-    setCurrentScreen('register');
-    setNavigationHistory(prev => [...prev, 'register']);
+    setCurrentScreen("register");
+    setNavigationHistory((prev) => [...prev, "register"]);
   };
 
   if (loading) {
@@ -147,24 +168,38 @@ export default function App() {
   }
 
   // Always show Home as default, with different content based on auth state
-  if (currentScreen === 'scanner') {
-    return <ScannerScreen onBack={navigateToHome} user={user} onNavigateToLogin={navigateToLogin} />;
+  if (currentScreen === "scanner") {
+    return (
+      <ScannerScreen
+        onBack={navigateToHome}
+        user={user}
+        onNavigateToLogin={navigateToLogin}
+      />
+    );
   }
-  if (currentScreen === 'admin' && user) {
+  if (currentScreen === "admin" && user) {
     return <AdminScreen currentUserId={user.uid} onBack={navigateToHome} />;
   }
-  if (currentScreen === 'login') {
+  if (currentScreen === "login") {
     return (
       <View style={styles.container}>
-        <LoginScreen onLogin={handleLogin} onSwitchToRegister={switchToRegister} onBackToHome={navigateToHome} />
+        <LoginScreen
+          onLogin={handleLogin}
+          onSwitchToRegister={switchToRegister}
+          onBackToHome={navigateToHome}
+        />
         <StatusBar style="auto" />
       </View>
     );
   }
-  if (currentScreen === 'register') {
+  if (currentScreen === "register") {
     return (
       <View style={styles.container}>
-        <RegisterScreen onRegister={handleLogin} onSwitchToLogin={switchToLogin} onBackToHome={navigateToHome} />
+        <RegisterScreen
+          onRegister={handleLogin}
+          onSwitchToLogin={switchToLogin}
+          onBackToHome={navigateToHome}
+        />
         <StatusBar style="auto" />
       </View>
     );
@@ -173,10 +208,10 @@ export default function App() {
   // Default Home screen (shows for both authenticated and non-authenticated users)
   return (
     <View style={styles.container}>
-      <HomeScreen 
-        user={user} 
-        onLogout={handleLogout} 
-        onNavigateToScanner={navigateToScanner} 
+      <HomeScreen
+        user={user}
+        onLogout={handleLogout}
+        onNavigateToScanner={navigateToScanner}
         onNavigateToAdmin={navigateToAdmin}
         onNavigateToLogin={navigateToLogin}
       />
@@ -188,12 +223,12 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#f5f5f5",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
