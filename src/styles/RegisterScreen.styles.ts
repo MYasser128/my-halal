@@ -1,12 +1,12 @@
 import { StyleSheet } from "react-native";
-import { colors, typography, spacing, borderRadius, shadows } from "./theme";
 import {
-  cardStyles,
-  textStyles,
   buttonStyles,
+  cardStyles,
   inputStyles,
   layoutStyles,
+  textStyles,
 } from "./common";
+import { borderRadius, colors, spacing, typography } from "./theme";
 
 export const registerScreenStyles = StyleSheet.create({
   container: {

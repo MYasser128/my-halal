@@ -1,39 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, ScrollView, ActivityIndicator, TextInput, BackHandler, Platform } from 'react-native';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
-import { setAdminStatus } from '../services/auth';
-import { getPendingReports, approveReport, rejectReport, getAllReports } from '../services/reports';
-import { Report } from '../services/reports';
-import { getAllProducts, updateProduct, deleteProduct, searchProducts, Product, ProductUpdateData } from '../services/products';
-import { adminPanelStyles } from '../styles/AdminPanel.styles';
-import { colors } from '../styles/theme';
-import { ProductEditModal } from '../components/ProductEditModal';
-import { ProductImage } from '../components/ProductImage';
-import { ImageViewer } from '../components/ImageViewer';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+  ActivityIndicator,
+  TextInput,
+  BackHandler,
+  Platform,
+} from "react-native";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
+import { setAdminStatus } from "../services/auth";
+import {
+  getPendingReports,
+  approveReport,
+  rejectReport,
+  getAllReports,
+} from "../services/reports";
+import { Report } from "../services/reports";
+import {
+  getAllProducts,
+  updateProduct,
+  deleteProduct,
+  searchProducts,
+  Product,
+  ProductUpdateData,
+} from "../services/products";
+import { adminPanelStyles } from "../styles/AdminPanel.styles";
+import { colors } from "../styles/theme";
+import { ProductEditModal } from "../components/ProductEditModal";
+import { ProductImage } from "../components/ProductImage";
+import { ImageViewer } from "../components/ImageViewer";
+import { useTranslation } from "react-i18next";
 
 interface AdminScreenProps {
   currentUserId: string;
   onBack: () => void;
 }
 
-export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack }) => {
+export const AdminScreen: React.FC<AdminScreenProps> = ({
+  currentUserId,
+  onBack,
+}) => {
   const { t } = useTranslation();
   const [pendingReports, setPendingReports] = useState<Report[]>([]);
   const [allReports, setAllReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState<'reports' | 'users' | 'products'>('reports');
+  const [selectedTab, setSelectedTab] = useState<
+    "reports" | "users" | "products"
+  >("reports");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [viewingImages, setViewingImages] = useState<{images: string[], currentIndex: number} | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewingImages, setViewingImages] = useState<{
+    images: string[];
+    currentIndex: number;
+  } | null>(null);
 
   // Handle Android back button for modals
   useEffect(() => {
     const backAction = () => {
-      if (Platform.OS === 'android') {
+      if (Platform.OS === "android") {
         // If image viewer is open, close it
         if (viewingImages !== null) {
           setViewingImages(null);
@@ -50,7 +80,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
       return false;
     };
 
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
 
     return () => backHandler.remove();
   }, [viewingImages, editingProduct]);
@@ -66,16 +99,16 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
         getPendingReports(),
         getAllReports(),
         getUsers(),
-        getAllProducts()
+        getAllProducts(),
       ]);
       setPendingReports(pending);
       setAllReports(all);
       setUsers(usersList);
-      
+
       setProducts(productsList.products);
     } catch (error) {
-      console.error('Error loading data:', error);
-      Alert.alert(t('admin.error'), t('admin.failedToLoadData'));
+      console.error("Error loading data:", error);
+      Alert.alert(t("admin.error"), t("admin.failedToLoadData"));
     } finally {
       setLoading(false);
     }
@@ -83,70 +116,82 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
 
   const getUsers = async () => {
     try {
-      const usersRef = collection(db, 'users');
+      const usersRef = collection(db, "users");
       const querySnapshot = await getDocs(usersRef);
-      return querySnapshot.docs.map(doc => ({
+      return querySnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
     } catch (error) {
-      console.error('Error getting users:', error);
+      console.error("Error getting users:", error);
       return [];
     }
   };
 
   const handleApproveReport = async (reportId: string) => {
     try {
-      const success = await approveReport(reportId, currentUserId, 'Approved by admin');
+      const success = await approveReport(
+        reportId,
+        currentUserId,
+        "Approved by admin"
+      );
       if (success) {
-        Alert.alert(t('admin.success'), t('admin.reportApprovedSuccess'));
+        Alert.alert(t("admin.success"), t("admin.reportApprovedSuccess"));
         loadData(); // Refresh data
       } else {
-        Alert.alert(t('admin.error'), t('admin.failedToApproveReport'));
+        Alert.alert(t("admin.error"), t("admin.failedToApproveReport"));
       }
     } catch (error) {
-      Alert.alert(t('admin.error'), t('admin.failedToApproveReport'));
+      Alert.alert(t("admin.error"), t("admin.failedToApproveReport"));
     }
   };
 
   const handleRejectReport = async (reportId: string) => {
-    Alert.alert(
-      t('admin.reject'),
-      t('admin.rejectReportConfirm'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('admin.reject'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const success = await rejectReport(reportId, currentUserId, 'Rejected by admin');
-              if (success) {
-                Alert.alert(t('admin.success'), t('admin.reportRejected'));
-                loadData(); // Refresh data
-              } else {
-                Alert.alert(t('admin.error'), t('admin.failedToRejectReport'));
-              }
-            } catch (error) {
-              Alert.alert(t('admin.error'), t('admin.failedToRejectReport'));
+    Alert.alert(t("admin.reject"), t("admin.rejectReportConfirm"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("admin.reject"),
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const success = await rejectReport(
+              reportId,
+              currentUserId,
+              "Rejected by admin"
+            );
+            if (success) {
+              Alert.alert(t("admin.success"), t("admin.reportRejected"));
+              loadData(); // Refresh data
+            } else {
+              Alert.alert(t("admin.error"), t("admin.failedToRejectReport"));
             }
+          } catch (error) {
+            Alert.alert(t("admin.error"), t("admin.failedToRejectReport"));
           }
-        }
-      ]
-    );
+        },
+      },
+    ]);
   };
 
-  const handleToggleAdmin = async (userId: string, currentAdminStatus: boolean) => {
+  const handleToggleAdmin = async (
+    userId: string,
+    currentAdminStatus: boolean
+  ) => {
     try {
       const success = await setAdminStatus(userId, !currentAdminStatus);
       if (success) {
-        Alert.alert(t('admin.success'), !currentAdminStatus ? t('admin.adminStatusGranted') : t('admin.adminStatusRevoked'));
+        Alert.alert(
+          t("admin.success"),
+          !currentAdminStatus
+            ? t("admin.adminStatusGranted")
+            : t("admin.adminStatusRevoked")
+        );
         loadData(); // Refresh data
       } else {
-        Alert.alert(t('admin.error'), t('admin.failedToUpdateAdminStatus'));
+        Alert.alert(t("admin.error"), t("admin.failedToUpdateAdminStatus"));
       }
     } catch (error) {
-      Alert.alert(t('admin.error'), t('admin.failedToUpdateAdminStatus'));
+      Alert.alert(t("admin.error"), t("admin.failedToUpdateAdminStatus"));
     }
   };
 
@@ -154,61 +199,64 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
     setEditingProduct(product);
   };
 
-  const handleSaveProduct = async (productId: string, updateData: ProductUpdateData) => {
+  const handleSaveProduct = async (
+    productId: string,
+    updateData: ProductUpdateData
+  ) => {
     try {
       const success = await updateProduct(productId, updateData, currentUserId);
       if (success) {
-        Alert.alert(t('common.success'), t('admin.productUpdated'));
+        Alert.alert(t("common.success"), t("admin.productUpdated"));
         setEditingProduct(null);
         loadData(); // Refresh data
       } else {
-        Alert.alert(t('common.error'), t('admin.productUpdateFailed'));
+        Alert.alert(t("common.error"), t("admin.productUpdateFailed"));
       }
     } catch (error) {
-      Alert.alert(t('common.error'), t('admin.productUpdateFailed'));
+      Alert.alert(t("common.error"), t("admin.productUpdateFailed"));
     }
   };
 
   const handleDeleteProduct = (productId: string, productName: string) => {
     Alert.alert(
-      t('admin.deleteProduct'),
-      t('admin.deleteProductConfirm', { productName }),
+      t("admin.deleteProduct"),
+      t("admin.deleteProductConfirm", { productName }),
       [
-        { text: t('common.cancel'), style: 'cancel' },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: t('common.delete'),
-          style: 'destructive',
+          text: t("common.delete"),
+          style: "destructive",
           onPress: async () => {
             try {
               const success = await deleteProduct(productId);
               if (success) {
-                Alert.alert(t('common.success'), t('admin.productDeleted'));
+                Alert.alert(t("common.success"), t("admin.productDeleted"));
                 loadData(); // Refresh data
               } else {
-                Alert.alert(t('common.error'), t('admin.productDeleteFailed'));
+                Alert.alert(t("common.error"), t("admin.productDeleteFailed"));
               }
             } catch (error) {
-              Alert.alert(t('common.error'), t('admin.productDeleteFailed'));
+              Alert.alert(t("common.error"), t("admin.productDeleteFailed"));
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
 
   const handleSearchProducts = async (term: string) => {
     setSearchTerm(term);
-    if (term.trim() === '') {
+    if (term.trim() === "") {
       loadData();
       return;
     }
-    
+
     try {
       const searchResults = await searchProducts(term);
       setProducts(searchResults);
     } catch (error) {
-      console.error('Error searching products:', error);
-      Alert.alert(t('common.error'), 'Failed to search products');
+      console.error("Error searching products:", error);
+      Alert.alert(t("common.error"), "Failed to search products");
     }
   };
 
@@ -217,7 +265,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
       <View style={adminPanelStyles.container}>
         <View style={adminPanelStyles.header}>
           <View style={adminPanelStyles.headerContent}>
-            <TouchableOpacity style={adminPanelStyles.backButton} onPress={onBack}>
+            <TouchableOpacity
+              style={adminPanelStyles.backButton}
+              onPress={onBack}
+            >
               <Text style={adminPanelStyles.backButtonText}>← Back</Text>
             </TouchableOpacity>
             <Text style={adminPanelStyles.headerTitle}>Admin Panel</Text>
@@ -225,7 +276,9 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
         </View>
         <View style={adminPanelStyles.loadingContainer}>
           <ActivityIndicator size="large" color="#22c55e" />
-          <Text style={adminPanelStyles.loadingText}>Loading admin data...</Text>
+          <Text style={adminPanelStyles.loadingText}>
+            Loading admin data...
+          </Text>
         </View>
       </View>
     );
@@ -235,7 +288,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
     <View style={adminPanelStyles.container}>
       <View style={adminPanelStyles.header}>
         <View style={adminPanelStyles.headerContent}>
-          <TouchableOpacity style={adminPanelStyles.backButton} onPress={onBack}>
+          <TouchableOpacity
+            style={adminPanelStyles.backButton}
+            onPress={onBack}
+          >
             <Text style={adminPanelStyles.backButtonText}>← Back</Text>
           </TouchableOpacity>
           <Text style={adminPanelStyles.headerTitle}>Admin Panel</Text>
@@ -244,41 +300,69 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
 
       <View style={adminPanelStyles.tabContainer}>
         <TouchableOpacity
-          style={[adminPanelStyles.tab, selectedTab === 'reports' && adminPanelStyles.activeTab]}
-          onPress={() => setSelectedTab('reports')}
+          style={[
+            adminPanelStyles.tab,
+            selectedTab === "reports" && adminPanelStyles.activeTab,
+          ]}
+          onPress={() => setSelectedTab("reports")}
         >
-          <Text style={[adminPanelStyles.tabText, selectedTab === 'reports' && adminPanelStyles.activeTabText]}>
+          <Text
+            style={[
+              adminPanelStyles.tabText,
+              selectedTab === "reports" && adminPanelStyles.activeTabText,
+            ]}
+          >
             Reports ({pendingReports.length})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[adminPanelStyles.tab, selectedTab === 'users' && adminPanelStyles.activeTab]}
-          onPress={() => setSelectedTab('users')}
+          style={[
+            adminPanelStyles.tab,
+            selectedTab === "users" && adminPanelStyles.activeTab,
+          ]}
+          onPress={() => setSelectedTab("users")}
         >
-          <Text style={[adminPanelStyles.tabText, selectedTab === 'users' && adminPanelStyles.activeTabText]}>
+          <Text
+            style={[
+              adminPanelStyles.tabText,
+              selectedTab === "users" && adminPanelStyles.activeTabText,
+            ]}
+          >
             Users ({users.length})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[adminPanelStyles.tab, selectedTab === 'products' && adminPanelStyles.activeTab]}
-          onPress={() => setSelectedTab('products')}
+          style={[
+            adminPanelStyles.tab,
+            selectedTab === "products" && adminPanelStyles.activeTab,
+          ]}
+          onPress={() => setSelectedTab("products")}
         >
-          <Text style={[adminPanelStyles.tabText, selectedTab === 'products' && adminPanelStyles.activeTabText]}>
-            {t('admin.products')} ({products.length})
+          <Text
+            style={[
+              adminPanelStyles.tabText,
+              selectedTab === "products" && adminPanelStyles.activeTabText,
+            ]}
+          >
+            {t("admin.products")} ({products.length})
           </Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={adminPanelStyles.content}>
-        {selectedTab === 'reports' && (
+        {selectedTab === "reports" && (
           <>
             <View style={adminPanelStyles.statsContainer}>
               <View style={adminPanelStyles.statCard}>
-                <Text style={adminPanelStyles.statNumber}>{pendingReports.length}</Text>
+                <Text style={adminPanelStyles.statNumber}>
+                  {pendingReports.length}
+                </Text>
                 <Text style={adminPanelStyles.statLabel}>Pending</Text>
               </View>
               <View style={adminPanelStyles.statCard}>
-                <Text style={adminPanelStyles.statNumber}>{allReports.length}</Text>
+                <Text style={adminPanelStyles.statNumber}>
+                  {allReports.length}
+                </Text>
                 <Text style={adminPanelStyles.statLabel}>Total Reports</Text>
               </View>
             </View>
@@ -287,9 +371,11 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
             {pendingReports.length === 0 ? (
               <View style={adminPanelStyles.emptyContainer}>
                 <Text style={adminPanelStyles.emptyIcon}>📋</Text>
-                <Text style={adminPanelStyles.emptyTitle}>{t('admin.noPendingReports')}</Text>
+                <Text style={adminPanelStyles.emptyTitle}>
+                  {t("admin.noPendingReports")}
+                </Text>
                 <Text style={adminPanelStyles.emptyText}>
-                  {t('admin.allReportsReviewed')}
+                  {t("admin.allReportsReviewed")}
                 </Text>
               </View>
             ) : (
@@ -297,41 +383,55 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
                 <View key={report.id} style={adminPanelStyles.reportCard}>
                   <View style={adminPanelStyles.reportHeader}>
                     <Text style={adminPanelStyles.reportTitle}>
-                      {report.name || t('admin.unnamedProduct')}
+                      {report.name || t("admin.unnamedProduct")}
                     </Text>
                     <View style={adminPanelStyles.reportStatusBadge}>
-                      <Text style={adminPanelStyles.reportStatusText}>{t('admin.pending')}</Text>
+                      <Text style={adminPanelStyles.reportStatusText}>
+                        {t("admin.pending")}
+                      </Text>
                     </View>
                   </View>
-                  
+
                   <View style={adminPanelStyles.reportDetails}>
                     <View style={adminPanelStyles.reportDetailRow}>
-                      <Text style={adminPanelStyles.reportDetailLabel}>{t('admin.barcode')}:</Text>
-                      <Text style={adminPanelStyles.reportDetailValue}>{report.barcode}</Text>
-                    </View>
-                    <View style={adminPanelStyles.reportDetailRow}>
-                      <Text style={adminPanelStyles.reportDetailLabel}>{t('admin.status')}:</Text>
-                      <Text style={adminPanelStyles.reportDetailValue}>{report.suggestedState}</Text>
-                    </View>
-                    <View style={adminPanelStyles.reportDetailRow}>
-                      <Text style={adminPanelStyles.reportDetailLabel}>{t('admin.reporter')}:</Text>
+                      <Text style={adminPanelStyles.reportDetailLabel}>
+                        {t("admin.barcode")}:
+                      </Text>
                       <Text style={adminPanelStyles.reportDetailValue}>
-                        {report.reporterId ? 
-                          (report.reporterEmail || `User ID: ${report.reporterId}`) : 
-                          t('admin.anonymousUser')
-                        }
+                        {report.barcode}
+                      </Text>
+                    </View>
+                    <View style={adminPanelStyles.reportDetailRow}>
+                      <Text style={adminPanelStyles.reportDetailLabel}>
+                        {t("admin.status")}:
+                      </Text>
+                      <Text style={adminPanelStyles.reportDetailValue}>
+                        {report.suggestedState}
+                      </Text>
+                    </View>
+                    <View style={adminPanelStyles.reportDetailRow}>
+                      <Text style={adminPanelStyles.reportDetailLabel}>
+                        {t("admin.reporter")}:
+                      </Text>
+                      <Text style={adminPanelStyles.reportDetailValue}>
+                        {report.reporterId
+                          ? report.reporterEmail ||
+                            `User ID: ${report.reporterId}`
+                          : t("admin.anonymousUser")}
                       </Text>
                     </View>
                     {report.notes && (
                       <Text style={adminPanelStyles.reportNotes}>
-                        {t('admin.notes')}: {report.notes}
+                        {t("admin.notes")}: {report.notes}
                       </Text>
                     )}
-                    
+
                     {/* Report Images */}
                     {report.images && report.images.length > 0 && (
                       <View style={adminPanelStyles.reportImagesContainer}>
-                        <Text style={adminPanelStyles.reportImagesLabel}>{t('product.images')}:</Text>
+                        <Text style={adminPanelStyles.reportImagesLabel}>
+                          {t("product.images")}:
+                        </Text>
                         <ScrollView
                           horizontal
                           showsHorizontalScrollIndicator={false}
@@ -343,29 +443,35 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
                               imageUrl={imageUrl}
                               style={adminPanelStyles.reportImage}
                               fallbackIcon="📷"
-                              onPress={() => setViewingImages({
-                                images: report.images!,
-                                currentIndex: index
-                              })}
+                              onPress={() =>
+                                setViewingImages({
+                                  images: report.images!,
+                                  currentIndex: index,
+                                })
+                              }
                             />
                           ))}
                         </ScrollView>
                       </View>
                     )}
                   </View>
-                  
+
                   <View style={adminPanelStyles.actionButtons}>
                     <TouchableOpacity
                       style={adminPanelStyles.approveButton}
                       onPress={() => handleApproveReport(report.id)}
                     >
-                      <Text style={adminPanelStyles.approveButtonText}>{t('admin.approve')}</Text>
+                      <Text style={adminPanelStyles.approveButtonText}>
+                        {t("admin.approve")}
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={adminPanelStyles.rejectButton}
                       onPress={() => handleRejectReport(report.id)}
                     >
-                      <Text style={adminPanelStyles.rejectButtonText}>{t('admin.reject')}</Text>
+                      <Text style={adminPanelStyles.rejectButtonText}>
+                        {t("admin.reject")}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -374,15 +480,19 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
           </>
         )}
 
-        {selectedTab === 'users' && (
+        {selectedTab === "users" && (
           <>
-            <Text style={adminPanelStyles.sectionTitle}>{t('admin.userManagement')}</Text>
+            <Text style={adminPanelStyles.sectionTitle}>
+              {t("admin.userManagement")}
+            </Text>
             {users.length === 0 ? (
               <View style={adminPanelStyles.emptyContainer}>
                 <Text style={adminPanelStyles.emptyIcon}>👥</Text>
-                <Text style={adminPanelStyles.emptyTitle}>{t('admin.noUsersFound')}</Text>
+                <Text style={adminPanelStyles.emptyTitle}>
+                  {t("admin.noUsersFound")}
+                </Text>
                 <Text style={adminPanelStyles.emptyText}>
-                  {t('admin.noUsersRegistered')}
+                  {t("admin.noUsersRegistered")}
                 </Text>
               </View>
             ) : (
@@ -392,21 +502,30 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
                     <Text style={adminPanelStyles.userEmail}>{user.email}</Text>
                     {user.isAdmin && (
                       <View style={adminPanelStyles.adminBadge}>
-                        <Text style={adminPanelStyles.adminBadgeText}>ADMIN</Text>
+                        <Text style={adminPanelStyles.adminBadgeText}>
+                          ADMIN
+                        </Text>
                       </View>
                     )}
                   </View>
-                  
+
                   <Text style={adminPanelStyles.userStatus}>
-                    {t('admin.adminStatus')}: {user.isAdmin ? t('admin.yes') : t('admin.no')}
+                    {t("admin.adminStatus")}:{" "}
+                    {user.isAdmin ? t("admin.yes") : t("admin.no")}
                   </Text>
-                  
+
                   <TouchableOpacity
-                    style={user.isAdmin ? adminPanelStyles.revokeAdminButton : adminPanelStyles.grantAdminButton}
+                    style={
+                      user.isAdmin
+                        ? adminPanelStyles.revokeAdminButton
+                        : adminPanelStyles.grantAdminButton
+                    }
                     onPress={() => handleToggleAdmin(user.id, user.isAdmin)}
                   >
                     <Text style={adminPanelStyles.grantAdminButtonText}>
-                      {user.isAdmin ? t('admin.revokeAdminAccess') : t('admin.grantAdminAccess')}
+                      {user.isAdmin
+                        ? t("admin.revokeAdminAccess")
+                        : t("admin.grantAdminAccess")}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -415,28 +534,39 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
           </>
         )}
 
-        {selectedTab === 'products' && (
+        {selectedTab === "products" && (
           <>
             <View style={adminPanelStyles.statsContainer}>
               <View style={adminPanelStyles.statCard}>
-                <Text style={adminPanelStyles.statNumber}>{products.length}</Text>
-                <Text style={adminPanelStyles.statLabel}>{t('admin.totalProducts')}</Text>
+                <Text style={adminPanelStyles.statNumber}>
+                  {products.length}
+                </Text>
+                <Text style={adminPanelStyles.statLabel}>
+                  {t("admin.totalProducts")}
+                </Text>
               </View>
               <View style={adminPanelStyles.statCard}>
                 <Text style={adminPanelStyles.statNumber}>
-                  {products.filter(p => p.halalStates?.default === 'halal').length}
+                  {
+                    products.filter((p) => p.halalStates?.default === "halal")
+                      .length
+                  }
                 </Text>
-                <Text style={adminPanelStyles.statLabel}>{t('admin.halalProducts')}</Text>
+                <Text style={adminPanelStyles.statLabel}>
+                  {t("admin.halalProducts")}
+                </Text>
               </View>
             </View>
 
-            <Text style={adminPanelStyles.sectionTitle}>{t('admin.productManagement')}</Text>
-            
+            <Text style={adminPanelStyles.sectionTitle}>
+              {t("admin.productManagement")}
+            </Text>
+
             {/* Search Bar */}
             <View style={adminPanelStyles.searchContainer}>
               <TextInput
                 style={adminPanelStyles.searchInput}
-                placeholder={t('admin.searchProducts')}
+                placeholder={t("admin.searchProducts")}
                 value={searchTerm}
                 onChangeText={handleSearchProducts}
                 placeholderTextColor={colors.text.tertiary}
@@ -446,9 +576,13 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
             {products.length === 0 ? (
               <View style={adminPanelStyles.emptyContainer}>
                 <Text style={adminPanelStyles.emptyIcon}>📦</Text>
-                <Text style={adminPanelStyles.emptyTitle}>{t('admin.noProductsFound')}</Text>
+                <Text style={adminPanelStyles.emptyTitle}>
+                  {t("admin.noProductsFound")}
+                </Text>
                 <Text style={adminPanelStyles.emptyText}>
-                  {searchTerm ? t('admin.noProductsMatch') : t('admin.noProductsInDatabase')}
+                  {searchTerm
+                    ? t("admin.noProductsMatch")
+                    : t("admin.noProductsInDatabase")}
                 </Text>
               </View>
             ) : (
@@ -456,23 +590,34 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
                 <View key={product.id} style={adminPanelStyles.productCard}>
                   <View style={adminPanelStyles.productHeader}>
                     <Text style={adminPanelStyles.productName}>
-                      {product.name || t('admin.unnamedProduct')}
+                      {product.name || t("admin.unnamedProduct")}
                     </Text>
-                    <View style={[
-                      adminPanelStyles.statusBadge,
-                      product.halalStates?.default === 'halal' ? adminPanelStyles.halalBadge : 
-                      product.halalStates?.default === 'haram' ? adminPanelStyles.haramBadge : 
-                      product.halalStates?.default === 'suspicious' ? adminPanelStyles.suspiciousBadge :
-                      adminPanelStyles.unknownBadge
-                    ]}>
-                      <Text style={[
-                        adminPanelStyles.statusText,
-                        product.halalStates?.default === 'halal' ? adminPanelStyles.halalText : 
-                        product.halalStates?.default === 'haram' ? adminPanelStyles.haramText : 
-                        product.halalStates?.default === 'suspicious' ? adminPanelStyles.suspiciousText :
-                        adminPanelStyles.unknownText
-                      ]}>
-                        {product.halalStates?.default?.toUpperCase() || 'UNKNOWN'}
+                    <View
+                      style={[
+                        adminPanelStyles.statusBadge,
+                        product.halalStates?.default === "halal"
+                          ? adminPanelStyles.halalBadge
+                          : product.halalStates?.default === "haram"
+                          ? adminPanelStyles.haramBadge
+                          : product.halalStates?.default === "suspicious"
+                          ? adminPanelStyles.suspiciousBadge
+                          : adminPanelStyles.unknownBadge,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          adminPanelStyles.statusText,
+                          product.halalStates?.default === "halal"
+                            ? adminPanelStyles.halalText
+                            : product.halalStates?.default === "haram"
+                            ? adminPanelStyles.haramText
+                            : product.halalStates?.default === "suspicious"
+                            ? adminPanelStyles.suspiciousText
+                            : adminPanelStyles.unknownText,
+                        ]}
+                      >
+                        {product.halalStates?.default?.toUpperCase() ||
+                          "UNKNOWN"}
                       </Text>
                     </View>
                   </View>
@@ -484,47 +629,70 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
                         imageUrl={product.images[0]}
                         style={adminPanelStyles.productImage}
                         fallbackIcon="📦"
-                        onPress={() => setViewingImages({
-                          images: product.images!,
-                          currentIndex: 0
-                        })}
+                        onPress={() =>
+                          setViewingImages({
+                            images: product.images!,
+                            currentIndex: 0,
+                          })
+                        }
                       />
                     </View>
                   )}
-                  
+
                   <View style={adminPanelStyles.productDetails}>
                     <View style={adminPanelStyles.productDetailRow}>
-                      <Text style={adminPanelStyles.productDetailLabel}>{t('admin.barcode')}:</Text>
-                      <Text style={adminPanelStyles.productDetailValue}>{product.barcode}</Text>
+                      <Text style={adminPanelStyles.productDetailLabel}>
+                        {t("admin.barcode")}:
+                      </Text>
+                      <Text style={adminPanelStyles.productDetailValue}>
+                        {product.barcode}
+                      </Text>
                     </View>
                     {product.manufacturer && (
                       <View style={adminPanelStyles.productDetailRow}>
-                        <Text style={adminPanelStyles.productDetailLabel}>{t('admin.manufacturer')}:</Text>
-                        <Text style={adminPanelStyles.productDetailValue}>{product.manufacturer}</Text>
+                        <Text style={adminPanelStyles.productDetailLabel}>
+                          {t("admin.manufacturer")}:
+                        </Text>
+                        <Text style={adminPanelStyles.productDetailValue}>
+                          {product.manufacturer}
+                        </Text>
                       </View>
                     )}
                     {product.lastUpdated && (
                       <View style={adminPanelStyles.productDetailRow}>
-                        <Text style={adminPanelStyles.productDetailLabel}>{t('admin.lastUpdated')}:</Text>
+                        <Text style={adminPanelStyles.productDetailLabel}>
+                          {t("admin.lastUpdated")}:
+                        </Text>
                         <Text style={adminPanelStyles.productDetailValue}>
-                          {new Date(product.lastUpdated.seconds * 1000).toLocaleDateString()}
+                          {new Date(
+                            product.lastUpdated.seconds * 1000
+                          ).toLocaleDateString()}
                         </Text>
                       </View>
                     )}
                   </View>
-                  
+
                   <View style={adminPanelStyles.productActions}>
                     <TouchableOpacity
                       style={adminPanelStyles.editButton}
                       onPress={() => handleEditProduct(product)}
                     >
-                      <Text style={adminPanelStyles.editButtonText}>✏️ {t('common.edit')}</Text>
+                      <Text style={adminPanelStyles.editButtonText}>
+                        ✏️ {t("common.edit")}
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={adminPanelStyles.deleteButton}
-                      onPress={() => handleDeleteProduct(product.id, product.name || t('admin.unnamedProduct'))}
+                      onPress={() =>
+                        handleDeleteProduct(
+                          product.id,
+                          product.name || t("admin.unnamedProduct")
+                        )
+                      }
                     >
-                      <Text style={adminPanelStyles.deleteButtonText}>🗑️ {t('common.delete')}</Text>
+                      <Text style={adminPanelStyles.deleteButtonText}>
+                        🗑️ {t("common.delete")}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -546,9 +714,11 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ currentUserId, onBack 
         images={viewingImages?.images || []}
         currentIndex={viewingImages?.currentIndex || 0}
         onClose={() => setViewingImages(null)}
-        onIndexChange={(index) => setViewingImages(prev => 
-          prev ? { ...prev, currentIndex: index } : null
-        )}
+        onIndexChange={(index) =>
+          setViewingImages((prev) =>
+            prev ? { ...prev, currentIndex: index } : null
+          )
+        }
       />
     </View>
   );

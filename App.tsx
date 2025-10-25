@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
-import {
-  View,
-  StyleSheet,
-  ActivityIndicator,
-  I18nManager,
-  BackHandler,
-  Alert,
-  Platform,
-} from "react-native";
 import { User } from "firebase/auth";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  BackHandler,
+  I18nManager,
+  Platform,
+  StyleSheet,
+  View,
+} from "react-native";
 import mobileAds from "react-native-google-mobile-ads";
-import { onAuthStateChange } from "./src/services/auth";
-import { LoginScreen } from "./src/screens/LoginScreen";
-import { RegisterScreen } from "./src/screens/RegisterScreen";
-import { HomeScreen } from "./src/screens/HomeScreen";
-import ScannerScreen from "./src/screens/ScannerScreen";
-import { AdminScreen } from "./src/screens/AdminScreen";
 import "./src/i18n"; // Initialize i18n
 import { isRTL } from "./src/i18n";
+import { AdminScreen } from "./src/screens/AdminScreen";
+import { HomeScreen } from "./src/screens/HomeScreen";
+import { LoginScreen } from "./src/screens/LoginScreen";
+import { RegisterScreen } from "./src/screens/RegisterScreen";
+import ScannerScreen from "./src/screens/ScannerScreen";
+import { onAuthStateChange } from "./src/services/auth";
 
 type AuthScreen = "login" | "register";
 type AppScreen = "home" | "scanner" | "admin" | "login" | "register";

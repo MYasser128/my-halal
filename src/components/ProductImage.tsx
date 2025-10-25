@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
-  Alert,
-} from 'react-native';
-import { colors } from '../styles/theme';
-import { useTranslation } from 'react-i18next';
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { colors } from "../styles/theme";
 
 interface ProductImageProps {
   imageUrl: string;
@@ -21,7 +20,7 @@ interface ProductImageProps {
 
 export const ProductImage: React.FC<ProductImageProps> = ({
   imageUrl,
-  fallbackIcon = '📦',
+  fallbackIcon = "📦",
   style,
   showPlaceholder = true,
   onPress,
@@ -43,7 +42,7 @@ export const ProductImage: React.FC<ProductImageProps> = ({
   const renderPlaceholder = () => (
     <View style={[styles.placeholder, style]}>
       <Text style={styles.placeholderIcon}>{fallbackIcon}</Text>
-      <Text style={styles.placeholderText}>{t('productImage.noImage')}</Text>
+      <Text style={styles.placeholderText}>{t("productImage.noImage")}</Text>
     </View>
   );
 
@@ -87,26 +86,26 @@ export const ProductImage: React.FC<ProductImageProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    position: 'relative',
+    position: "relative",
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   loadingContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: colors.background.secondary,
   },
   placeholder: {
     backgroundColor: colors.background.secondary,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: colors.border.primary,
     borderRadius: 8,
