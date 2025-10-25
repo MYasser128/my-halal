@@ -63,7 +63,7 @@
     "scanProduct": "📱 Scan Product",
     "loginToScan": "🔑 Login to Scan",
     "productScanner": "🔍 Product Scanner",
-    "productScannerDescription": "Scan barcodes to instantly check if products are halal, haram, or need verification. Get detailed ingredient analysis and certification information.",
+    "productScannerDescription": "Scan barcodes to instantly check if products are halal, haram, or need verification.",
     "createAccount": "Create Account",
     "guestAuthDescription": "Create an account to save your scan history and report products.",
     "adminPanel": "Admin Panel",

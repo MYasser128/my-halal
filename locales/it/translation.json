@@ -63,7 +63,7 @@
     "scanProduct": "📱 Scansiona Prodotto",
     "loginToScan": "🔑 Accedi per Scansionare",
     "productScanner": "🔍 Scanner Prodotto",
-    "productScannerDescription": "Scansiona i codici a barre per verificare istantaneamente se i prodotti sono halal, haram o necessitano di verifica. Ottieni analisi dettagliate degli ingredienti e informazioni di certificazione.",
+    "productScannerDescription": "Scansiona i codici a barre per verificare istantaneamente se i prodotti sono halal, haram o necessitano di verifica.",
     "createAccount": "Crea Account",
     "guestAuthDescription": "Crea un account per salvare la cronologia delle scansioni e segnalare prodotti.",
     "adminPanel": "Pannello Amministratore",
