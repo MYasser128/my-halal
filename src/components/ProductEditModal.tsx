@@ -10,10 +10,11 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { useSafeAreaPadding } from '../hooks/useSafeAreaPadding';
 import { Product, ProductUpdateData } from '../services/products';
 import { adminPanelStyles } from '../styles/AdminPanel.styles';
 import { colors } from '../styles/theme';
-import { useTranslation } from 'react-i18next';
 import { ImageUpload } from './ImageUpload';
 
 
@@ -31,6 +32,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
   onSave,
 }) => {
   const { t } = useTranslation();
+  const { headerStyle, screenBottomStyle } = useSafeAreaPadding();
   const [formData, setFormData] = useState({
     name: '',
     halalStatus: 'halal' as 'halal' | 'haram' | 'suspicious',
@@ -93,7 +95,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={adminPanelStyles.modalContainer}>
-          <View style={adminPanelStyles.modalHeader}>
+          <View style={[adminPanelStyles.modalHeader, headerStyle]}>
             <Text style={adminPanelStyles.modalTitle}>{t('admin.editProduct')}</Text>
             <TouchableOpacity onPress={handleClose} style={adminPanelStyles.closeButton}>
               <Text style={adminPanelStyles.closeButtonText}>✕</Text>
@@ -150,7 +152,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
 
           </ScrollView>
 
-          <View style={adminPanelStyles.modalActions}>
+          <View style={[adminPanelStyles.modalActions, screenBottomStyle]}>
             <TouchableOpacity style={adminPanelStyles.cancelButton} onPress={handleClose}>
               <Text style={adminPanelStyles.cancelButtonText}>{t('common.cancel')}</Text>
             </TouchableOpacity>

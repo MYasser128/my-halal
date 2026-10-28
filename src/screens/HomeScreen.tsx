@@ -12,7 +12,9 @@ import { useTranslation } from "react-i18next";
 import { useAdmin } from "../hooks/useAdmin";
 import { BurgerMenu } from "../components/BurgerMenu";
 import { isRTL } from "../i18n";
+import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
 import { homeScreenStyles } from "../styles/HomeScreen.styles";
+import { spacing } from "../styles/theme";
 import {
   BannerAd,
   BannerAdSize,
@@ -44,10 +46,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const { t, i18n } = useTranslation();
   const { isAdmin, loading } = useAdmin(user);
   const isCurrentRTL = isRTL(i18n.language);
+  const { insets, headerStyle, screenBottomStyle } = useSafeAreaPadding();
 
   return (
-    <ScrollView style={homeScreenStyles.container}>
-      <View style={homeScreenStyles.header}>
+    <ScrollView
+      style={homeScreenStyles.container}
+      contentContainerStyle={screenBottomStyle}
+    >
+      <View style={[homeScreenStyles.header, headerStyle]}>
         <BurgerMenu
           user={user}
           onLogout={onLogout}
@@ -56,6 +62,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           isAdmin={isAdmin}
           style={[
             homeScreenStyles.burgerMenu,
+            { top: insets.top + spacing[2] },
             isCurrentRTL
               ? { right: "auto", left: 20 }
               : { right: 20, left: "auto" },

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, ActivityInd
 import { useTranslation } from 'react-i18next';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useSafeAreaPadding } from '../hooks/useSafeAreaPadding';
 import { productCreationStyles } from '../styles/ProductCreation.styles';
 import { isAdmin } from '../services/auth';
 import { User } from 'firebase/auth';
@@ -25,6 +26,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
   onNavigateToLogin
 }) => {
   const { t } = useTranslation();
+  const { headerStyle, screenBottomStyle } = useSafeAreaPadding();
   const [formData, setFormData] = useState({
     name: '',
     halalStatus: 'halal' as 'halal' | 'haram' | 'suspicious',
@@ -186,7 +188,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
 
   return (
     <View style={productCreationStyles.container}>
-      <View style={productCreationStyles.header}>
+      <View style={[productCreationStyles.header, headerStyle]}>
         <View style={productCreationStyles.headerContent}>
           <TouchableOpacity style={productCreationStyles.backButton} onPress={onBack}>
             <Text style={productCreationStyles.backButtonText}>← {t('common.back')}</Text>
@@ -195,7 +197,10 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
         </View>
       </View>
 
-      <ScrollView style={productCreationStyles.content}>
+      <ScrollView
+        style={productCreationStyles.content}
+        contentContainerStyle={screenBottomStyle}
+      >
         <View style={productCreationStyles.formContainer}>
           <Text style={productCreationStyles.formTitle}>
             {isUserAdmin ? t('productCreation.addNewProductAdmin') : 

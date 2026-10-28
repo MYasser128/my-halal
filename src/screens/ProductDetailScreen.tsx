@@ -13,6 +13,7 @@ import {
 import { ImageViewer } from "../components/ImageViewer";
 import { ProductImage } from "../components/ProductImage";
 import { db } from "../firebase";
+import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
 import { productDetailStyles } from "../styles/ProductDetail.styles";
 
 interface ProductDetailScreenProps {
@@ -48,6 +49,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   onScanAgain,
 }) => {
   const { t } = useTranslation();
+  const { headerStyle, screenBottomStyle } = useSafeAreaPadding();
   const [product, setProduct] = useState<ProductData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -152,7 +154,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   if (loading) {
     return (
       <View style={productDetailStyles.container}>
-        <View style={productDetailStyles.header}>
+        <View style={[productDetailStyles.header, headerStyle]}>
           <View style={productDetailStyles.headerContent}>
             <TouchableOpacity
               style={productDetailStyles.backButton}
@@ -180,7 +182,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   if (error || !product) {
     return (
       <View style={productDetailStyles.container}>
-        <View style={productDetailStyles.header}>
+        <View style={[productDetailStyles.header, headerStyle]}>
           <View style={productDetailStyles.headerContent}>
             <TouchableOpacity
               style={productDetailStyles.backButton}
@@ -195,7 +197,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
             </Text>
           </View>
         </View>
-        <View style={productDetailStyles.content}>
+        <View style={[productDetailStyles.content, screenBottomStyle]}>
           <View style={productDetailStyles.emptyContainer}>
             <Text style={productDetailStyles.emptyIcon}>❌</Text>
             <Text style={productDetailStyles.emptyTitle}>
@@ -222,7 +224,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
 
   return (
     <View style={productDetailStyles.container}>
-      <View style={productDetailStyles.header}>
+      <View style={[productDetailStyles.header, headerStyle]}>
         <View style={productDetailStyles.headerContent}>
           <TouchableOpacity
             style={productDetailStyles.backButton}
@@ -238,7 +240,10 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
         </View>
       </View>
 
-      <ScrollView style={productDetailStyles.content}>
+      <ScrollView
+        style={productDetailStyles.content}
+        contentContainerStyle={screenBottomStyle}
+      >
         {/* Product Images */}
         {product.images && product.images.length > 0 && (
           <View style={productDetailStyles.imagesSection}>

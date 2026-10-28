@@ -15,6 +15,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { User } from "firebase/auth";
 import { isRTL } from "../i18n";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
 interface BurgerMenuProps {
@@ -38,6 +39,7 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
   const isCurrentRTL = isRTL(i18n.language);
+  const insets = useSafeAreaInsets();
   const [isOpen, setIsOpen] = React.useState(false);
   const [slideAnim] = React.useState(
     new Animated.Value(isCurrentRTL ? screenWidth : -screenWidth)
@@ -137,9 +139,9 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
       width: screenWidth * 0.8,
       maxWidth: 300,
       backgroundColor: "#ffffff",
-      paddingTop: 60,
+      paddingTop: insets.top + 20,
       paddingHorizontal: 20,
-      paddingBottom: 20,
+      paddingBottom: insets.bottom + 20,
       flex: 1,
       ...(isCurrentRTL ? { right: 0 } : { left: 0 }),
     },

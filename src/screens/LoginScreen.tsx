@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
+import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
 import { createUserProfile, getUserProfile, login } from "../services/auth";
 import { loginScreenStyles } from "../styles/LoginScreen.styles";
 
@@ -29,6 +30,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   onBackToHome,
 }) => {
   const { t } = useTranslation();
+  const { headerStyle, screenBottomStyle } = useSafeAreaPadding();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -79,7 +81,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       style={loginScreenStyles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <ScrollView contentContainerStyle={loginScreenStyles.scrollContainer}>
+      <ScrollView
+        contentContainerStyle={[
+          loginScreenStyles.scrollContainer,
+          headerStyle,
+          screenBottomStyle,
+        ]}
+      >
         <View style={loginScreenStyles.formContainer}>
           <View style={loginScreenStyles.header}>
             <View style={loginScreenStyles.headerTop}>

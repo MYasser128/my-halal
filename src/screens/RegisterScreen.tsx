@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { register, createUserProfile, getUserProfile } from '../services/auth';
 import { User } from 'firebase/auth';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { useSafeAreaPadding } from '../hooks/useSafeAreaPadding';
 import { registerScreenStyles } from '../styles/RegisterScreen.styles';
 
 interface RegisterScreenProps {
@@ -25,6 +26,7 @@ interface RegisterScreenProps {
 
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSwitchToLogin, onBackToHome }) => {
   const { t } = useTranslation();
+  const { headerStyle, screenBottomStyle } = useSafeAreaPadding();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -71,7 +73,13 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
       style={registerScreenStyles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={registerScreenStyles.scrollContainer}>
+      <ScrollView
+        contentContainerStyle={[
+          registerScreenStyles.scrollContainer,
+          headerStyle,
+          screenBottomStyle,
+        ]}
+      >
         <View style={registerScreenStyles.formContainer}>
           <View style={registerScreenStyles.header}>
             <View style={registerScreenStyles.headerTop}>

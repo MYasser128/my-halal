@@ -8,8 +8,8 @@ import {
   StyleSheet,
   Dimensions,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
+import { useSafeAreaPadding } from '../hooks/useSafeAreaPadding';
 import { colors } from '../styles/theme';
 
 interface ImageViewerProps {
@@ -29,6 +29,8 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   onClose,
   onIndexChange,
 }) => {
+  const { headerStyle, screenBottomStyle } = useSafeAreaPadding();
+
   const handlePrevious = () => {
     if (onIndexChange && currentIndex > 0) {
       onIndexChange(currentIndex - 1);
@@ -50,8 +52,8 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
+      <View style={[styles.container, screenBottomStyle]}>
+        <View style={[styles.header, headerStyle]}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
@@ -112,7 +114,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
             </TouchableOpacity>
           </View>
         )}
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };
