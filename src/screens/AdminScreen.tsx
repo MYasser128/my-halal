@@ -28,6 +28,7 @@ import {
   Product,
   ProductUpdateData,
 } from "../services/products";
+import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
 import { adminPanelStyles } from "../styles/AdminPanel.styles";
 import { colors } from "../styles/theme";
 import { ProductEditModal } from "../components/ProductEditModal";
@@ -45,6 +46,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   onBack,
 }) => {
   const { t } = useTranslation();
+  const { headerStyle, screenBottomStyle } = useSafeAreaPadding();
   const [pendingReports, setPendingReports] = useState<Report[]>([]);
   const [allReports, setAllReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<any[]>([]);
@@ -263,7 +265,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   if (loading) {
     return (
       <View style={adminPanelStyles.container}>
-        <View style={adminPanelStyles.header}>
+        <View style={[adminPanelStyles.header, headerStyle]}>
           <View style={adminPanelStyles.headerContent}>
             <TouchableOpacity
               style={adminPanelStyles.backButton}
@@ -286,7 +288,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
   return (
     <View style={adminPanelStyles.container}>
-      <View style={adminPanelStyles.header}>
+      <View style={[adminPanelStyles.header, headerStyle]}>
         <View style={adminPanelStyles.headerContent}>
           <TouchableOpacity
             style={adminPanelStyles.backButton}
@@ -349,7 +351,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={adminPanelStyles.content}>
+      <ScrollView
+        style={adminPanelStyles.content}
+        contentContainerStyle={screenBottomStyle}
+      >
         {selectedTab === "reports" && (
           <>
             <View style={adminPanelStyles.statsContainer}>

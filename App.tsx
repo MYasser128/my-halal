@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import mobileAds from "react-native-google-mobile-ads";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import "./src/i18n"; // Initialize i18n
 import { isRTL } from "./src/i18n";
 import { AdminScreen } from "./src/screens/AdminScreen";
@@ -23,7 +24,7 @@ import { logout, onAuthStateChange } from "./src/services/auth";
 type AuthScreen = "login" | "register";
 type AppScreen = "home" | "scanner" | "admin" | "login" | "register";
 
-export default function App() {
+function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [authScreen, setAuthScreen] = useState<AuthScreen>("login");
@@ -237,3 +238,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
+
+export default function Root() {
+  return (
+    <SafeAreaProvider>
+      <App />
+    </SafeAreaProvider>
+  );
+}

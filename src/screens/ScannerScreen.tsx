@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
 import { scannerScreenStyles } from "../styles/ScannerScreen.styles";
 import { ProductDetailScreen } from "./ProductDetailScreen";
 import { ProductCreationScreen } from "./ProductCreationScreen";
@@ -16,6 +17,8 @@ interface ScannerScreenProps {
 
 export default function ScannerScreen({ onBack, user, onNavigateToLogin }: ScannerScreenProps) {
   const { t } = useTranslation();
+  const { insets, overlayHeaderStyle, floatingBottomStyle, screenBottomStyle } =
+    useSafeAreaPadding();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [barcodeData, setBarcodeData] = useState<string | null>(null);
@@ -48,7 +51,12 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
 
   if (!permission) {
     return (
-      <View style={scannerScreenStyles.loadingContainer}>
+      <View
+        style={[
+          scannerScreenStyles.loadingContainer,
+          { paddingTop: insets.top, paddingBottom: insets.bottom },
+        ]}
+      >
         <ActivityIndicator size="large" color="#22c55e" />
         <Text style={scannerScreenStyles.loadingText}>{t('scanner.loadingCameraPermissions')}</Text>
       </View>
@@ -57,7 +65,12 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
 
   if (!permission.granted) {
     return (
-      <View style={scannerScreenStyles.permissionContainer}>
+      <View
+        style={[
+          scannerScreenStyles.permissionContainer,
+          { paddingTop: insets.top, paddingBottom: insets.bottom },
+        ]}
+      >
         <Text style={scannerScreenStyles.permissionTitle}>{t('scanner.cameraPermissionRequired')}</Text>
         <Text style={scannerScreenStyles.permissionDescription}>
           {t('scanner.cameraPermissionDescription')}
@@ -250,8 +263,8 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
 
   if (currentView === 'productNotFound' && barcodeData) {
     return (
-      <View style={scannerScreenStyles.container}>
-        <View style={scannerScreenStyles.header}>
+      <View style={[scannerScreenStyles.container, screenBottomStyle]}>
+        <View style={[scannerScreenStyles.header, overlayHeaderStyle]}>
           <TouchableOpacity style={scannerScreenStyles.backButton} onPress={handleBackToScanner}>
             <Text style={scannerScreenStyles.backButtonText}>← {t('common.back')}</Text>
           </TouchableOpacity>
@@ -309,7 +322,7 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
       style={scannerScreenStyles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={scannerScreenStyles.header}>
+      <View style={[scannerScreenStyles.header, overlayHeaderStyle]}>
         <TouchableOpacity style={scannerScreenStyles.backButton} onPress={onBack}>
           <Text style={scannerScreenStyles.backButtonText}>← {t('common.back')}</Text>
         </TouchableOpacity>
@@ -373,7 +386,7 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
         </View>
       )}
       
-      <View style={scannerScreenStyles.bottomActions}>
+      <View style={[scannerScreenStyles.bottomActions, floatingBottomStyle]}>
         <TouchableOpacity 
           style={scannerScreenStyles.toggleButton} 
           onPress={handleToggleManualInput}
