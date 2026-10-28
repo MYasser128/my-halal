@@ -176,6 +176,7 @@
     "noProductsFound": "لم يتم العثور على منتجات",
     "noProductsMatch": "لا توجد منتجات تطابق معايير البحث الخاصة بك.",
     "noProductsInDatabase": "لا توجد منتجات حالياً في قاعدة البيانات.",
+    "noProductsMatchFilter": "لا توجد منتجات تطابق هذا الفلتر.",
     "editProduct": "تعديل المنتج",
     "deleteProduct": "حذف المنتج",
     "deleteProductConfirm": "هل أنت متأكد من أنك تريد حذف \"{{productName}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
@@ -223,7 +224,11 @@
     "reportRejected": "تم رفض التقرير",
     "adminStatusGranted": "تم منح صلاحيات الإدارة",
     "adminStatusRevoked": "تم سحب صلاحيات الإدارة",
-    "failedToUpdateAdminStatus": "فشل في تحديث حالة الإدارة"
+    "failedToUpdateAdminStatus": "فشل في تحديث حالة الإدارة",
+    "previous": "السابق",
+    "next": "التالي",
+    "pageOf": "صفحة {{current}} من {{total}}",
+    "failedToSearchProducts": "فشل البحث في المنتجات"
   },
   "productCreation": {
     "addNewProduct": "إضافة منتج جديد",

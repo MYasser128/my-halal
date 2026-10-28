@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -22,11 +22,16 @@ import {
 import { Report } from "../services/reports";
 import {
   getAllProducts,
+  getHalalProductsCount,
+  getProductsCount,
   updateProduct,
   deleteProduct,
   searchProducts,
   Product,
+  ProductListFilter,
+  ProductPageCursor,
   ProductUpdateData,
+  PRODUCTS_PAGE_SIZE,
 } from "../services/products";
 import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
 import { adminPanelStyles } from "../styles/AdminPanel.styles";
@@ -51,6 +56,14 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [allReports, setAllReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [productsTotal, setProductsTotal] = useState(0);
+  const [halalTotal, setHalalTotal] = useState(0);
+  const [productPage, setProductPage] = useState(1);
+  const [hasMoreProducts, setHasMoreProducts] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [productFilter, setProductFilter] =
+    useState<ProductListFilter>("all");
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<
     "reports" | "users" | "products"
@@ -61,6 +74,14 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     images: string[];
     currentIndex: number;
   } | null>(null);
+  const contentScrollRef = useRef<ScrollView>(null);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const productCursors = useRef<(ProductPageCursor | undefined)[]>([
+    undefined,
+  ]);
+  const productPageRef = useRef(1);
+  const productFilterRef = useRef<ProductListFilter>("all");
+  const searchRequestId = useRef(0);
 
   // Handle Android back button for modals
   useEffect(() => {
@@ -92,22 +113,70 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
   useEffect(() => {
     loadData();
+    return () => {
+      if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    };
   }, []);
+
+  const loadProductCounts = async () => {
+    const [total, halal] = await Promise.all([
+      getProductsCount(),
+      getHalalProductsCount(),
+    ]);
+    setProductsTotal(total);
+    setHalalTotal(halal);
+  };
+
+  const loadProductsPage = async (
+    page: number,
+    options?: { reset?: boolean }
+  ) => {
+    setLoadingProducts(true);
+    try {
+      if (options?.reset) {
+        productCursors.current = [undefined];
+      }
+      const cursor = productCursors.current[page - 1];
+      const result = await getAllProducts(
+        cursor,
+        PRODUCTS_PAGE_SIZE,
+        productFilterRef.current
+      );
+      if (result.products.length === 0 && page > 1) {
+        setHasMoreProducts(false);
+        return loadProductsPage(page - 1);
+      }
+      setProducts(result.products);
+      setProductPage(page);
+      productPageRef.current = page;
+      setHasMoreProducts(result.hasMore);
+      const nextCursors = productCursors.current.slice(0, page);
+      nextCursors[page] = result.lastDoc ?? undefined;
+      productCursors.current = nextCursors;
+      contentScrollRef.current?.scrollTo({ y: 0, animated: false });
+    } catch (error) {
+      console.error("Error loading products:", error);
+      Alert.alert(t("admin.error"), t("admin.failedToLoadData"));
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [pending, all, usersList, productsList] = await Promise.all([
+      const [pending, all, usersList] = await Promise.all([
         getPendingReports(),
         getAllReports(),
         getUsers(),
-        getAllProducts(),
       ]);
       setPendingReports(pending);
       setAllReports(all);
       setUsers(usersList);
-
-      setProducts(productsList.products);
+      await Promise.all([
+        loadProductsPage(1, { reset: true }),
+        loadProductCounts(),
+      ]);
     } catch (error) {
       console.error("Error loading data:", error);
       Alert.alert(t("admin.error"), t("admin.failedToLoadData"));
@@ -210,7 +279,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       if (success) {
         Alert.alert(t("common.success"), t("admin.productUpdated"));
         setEditingProduct(null);
-        loadData(); // Refresh data
+        await Promise.all([
+          loadProductsPage(productPageRef.current),
+          loadProductCounts(),
+        ]);
       } else {
         Alert.alert(t("common.error"), t("admin.productUpdateFailed"));
       }
@@ -233,7 +305,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               const success = await deleteProduct(productId);
               if (success) {
                 Alert.alert(t("common.success"), t("admin.productDeleted"));
-                loadData(); // Refresh data
+                await Promise.all([
+                  loadProductsPage(productPageRef.current),
+                  loadProductCounts(),
+                ]);
               } else {
                 Alert.alert(t("common.error"), t("admin.productDeleteFailed"));
               }
@@ -246,20 +321,58 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     );
   };
 
-  const handleSearchProducts = async (term: string) => {
+  const applyProductFilter = (filter: ProductListFilter) => {
+    if (
+      filter === productFilterRef.current &&
+      !isSearching &&
+      searchTerm.trim() === ""
+    ) {
+      return;
+    }
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchRequestId.current += 1;
+    productFilterRef.current = filter;
+    setProductFilter(filter);
+    setSearchTerm("");
+    setIsSearching(false);
+    loadProductsPage(1, { reset: true });
+  };
+
+  const handleSearchProducts = (term: string) => {
     setSearchTerm(term);
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+
     if (term.trim() === "") {
-      loadData();
+      searchRequestId.current += 1;
+      setIsSearching(false);
+      loadProductsPage(1, { reset: true });
       return;
     }
 
-    try {
-      const searchResults = await searchProducts(term);
-      setProducts(searchResults);
-    } catch (error) {
-      console.error("Error searching products:", error);
-      Alert.alert(t("common.error"), "Failed to search products");
-    }
+    const requestId = searchRequestId.current + 1;
+    searchRequestId.current = requestId;
+    searchTimeout.current = setTimeout(async () => {
+      setIsSearching(true);
+      setLoadingProducts(true);
+      try {
+        const searchResults = await searchProducts(term);
+        if (requestId !== searchRequestId.current) return;
+        setProducts(
+          productFilterRef.current === "halal"
+            ? searchResults.filter(
+                (product) => product.halalStates?.default === "halal"
+              )
+            : searchResults
+        );
+      } catch (error) {
+        console.error("Error searching products:", error);
+        Alert.alert(t("common.error"), t("admin.failedToSearchProducts"));
+      } finally {
+        if (requestId === searchRequestId.current) {
+          setLoadingProducts(false);
+        }
+      }
+    }, 400);
   };
 
   if (loading) {
@@ -346,12 +459,13 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               selectedTab === "products" && adminPanelStyles.activeTabText,
             ]}
           >
-            {t("admin.products")} ({products.length})
+            {t("admin.products")} ({productsTotal})
           </Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView
+        ref={contentScrollRef}
         style={adminPanelStyles.content}
         contentContainerStyle={screenBottomStyle}
       >
@@ -542,25 +656,64 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
         {selectedTab === "products" && (
           <>
             <View style={adminPanelStyles.statsContainer}>
-              <View style={adminPanelStyles.statCard}>
-                <Text style={adminPanelStyles.statNumber}>
-                  {products.length}
+              <TouchableOpacity
+                style={[
+                  adminPanelStyles.statCard,
+                  productFilter === "all" &&
+                    adminPanelStyles.statCardSelected,
+                ]}
+                onPress={() => applyProductFilter("all")}
+                disabled={loadingProducts}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    adminPanelStyles.statNumber,
+                    productFilter === "all" &&
+                      adminPanelStyles.statNumberSelected,
+                  ]}
+                >
+                  {productsTotal}
                 </Text>
-                <Text style={adminPanelStyles.statLabel}>
+                <Text
+                  style={[
+                    adminPanelStyles.statLabel,
+                    productFilter === "all" &&
+                      adminPanelStyles.statLabelSelected,
+                  ]}
+                >
                   {t("admin.totalProducts")}
                 </Text>
-              </View>
-              <View style={adminPanelStyles.statCard}>
-                <Text style={adminPanelStyles.statNumber}>
-                  {
-                    products.filter((p) => p.halalStates?.default === "halal")
-                      .length
-                  }
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  adminPanelStyles.statCard,
+                  productFilter === "halal" &&
+                    adminPanelStyles.statCardHalalSelected,
+                ]}
+                onPress={() => applyProductFilter("halal")}
+                disabled={loadingProducts}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    adminPanelStyles.statNumber,
+                    productFilter === "halal" &&
+                      adminPanelStyles.statNumberHalalSelected,
+                  ]}
+                >
+                  {halalTotal}
                 </Text>
-                <Text style={adminPanelStyles.statLabel}>
+                <Text
+                  style={[
+                    adminPanelStyles.statLabel,
+                    productFilter === "halal" &&
+                      adminPanelStyles.statLabelHalalSelected,
+                  ]}
+                >
                   {t("admin.halalProducts")}
                 </Text>
-              </View>
+              </TouchableOpacity>
             </View>
 
             <Text style={adminPanelStyles.sectionTitle}>
@@ -578,7 +731,16 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               />
             </View>
 
-            {products.length === 0 ? (
+            {loadingProducts && (
+              <View style={adminPanelStyles.productsLoadingRow}>
+                <ActivityIndicator size="small" color={colors.primary[500]} />
+                <Text style={adminPanelStyles.productsLoadingText}>
+                  {t("common.loading")}
+                </Text>
+              </View>
+            )}
+
+            {products.length === 0 && !loadingProducts ? (
               <View style={adminPanelStyles.emptyContainer}>
                 <Text style={adminPanelStyles.emptyIcon}>📦</Text>
                 <Text style={adminPanelStyles.emptyTitle}>
@@ -587,6 +749,8 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 <Text style={adminPanelStyles.emptyText}>
                   {searchTerm
                     ? t("admin.noProductsMatch")
+                    : productFilter === "halal"
+                    ? t("admin.noProductsMatchFilter")
                     : t("admin.noProductsInDatabase")}
                 </Text>
               </View>
@@ -702,6 +866,54 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                   </View>
                 </View>
               ))
+            )}
+
+            {!isSearching &&
+              ((productFilter === "halal" ? halalTotal : productsTotal) >
+                PRODUCTS_PAGE_SIZE ||
+                hasMoreProducts ||
+                productPage > 1) && (
+              <View style={adminPanelStyles.paginationContainer}>
+                <TouchableOpacity
+                  style={[
+                    adminPanelStyles.paginationButton,
+                    productPage <= 1 &&
+                      adminPanelStyles.paginationButtonDisabled,
+                  ]}
+                  disabled={productPage <= 1 || loadingProducts}
+                  onPress={() => loadProductsPage(productPage - 1)}
+                >
+                  <Text style={adminPanelStyles.paginationButtonText}>
+                    {t("admin.previous")}
+                  </Text>
+                </TouchableOpacity>
+                <Text style={adminPanelStyles.paginationInfo}>
+                  {t("admin.pageOf", {
+                    current: productPage,
+                    total: Math.max(
+                      productPage,
+                      Math.ceil(
+                        (productFilter === "halal"
+                          ? halalTotal
+                          : productsTotal) / PRODUCTS_PAGE_SIZE
+                      )
+                    ),
+                  })}
+                </Text>
+                <TouchableOpacity
+                  style={[
+                    adminPanelStyles.paginationButton,
+                    !hasMoreProducts &&
+                      adminPanelStyles.paginationButtonDisabled,
+                  ]}
+                  disabled={!hasMoreProducts || loadingProducts}
+                  onPress={() => loadProductsPage(productPage + 1)}
+                >
+                  <Text style={adminPanelStyles.paginationButtonText}>
+                    {t("admin.next")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             )}
           </>
         )}

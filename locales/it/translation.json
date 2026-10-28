@@ -176,6 +176,7 @@
     "noProductsFound": "Nessun Prodotto Trovato",
     "noProductsMatch": "Nessun prodotto corrisponde ai tuoi criteri di ricerca.",
     "noProductsInDatabase": "Non ci sono prodotti attualmente nel database.",
+    "noProductsMatchFilter": "Nessun prodotto corrisponde a questo filtro.",
     "editProduct": "Modifica Prodotto",
     "deleteProduct": "Elimina Prodotto",
     "deleteProductConfirm": "Sei sicuro di voler eliminare \"{{productName}}\"? Questa azione non può essere annullata.",
@@ -223,7 +224,11 @@
     "reportRejected": "Rapporto rifiutato",
     "adminStatusGranted": "Stato amministratore concesso",
     "adminStatusRevoked": "Stato amministratore revocato",
-    "failedToUpdateAdminStatus": "Impossibile aggiornare lo stato amministratore"
+    "failedToUpdateAdminStatus": "Impossibile aggiornare lo stato amministratore",
+    "previous": "Precedente",
+    "next": "Successivo",
+    "pageOf": "Pagina {{current}} di {{total}}",
+    "failedToSearchProducts": "Impossibile cercare i prodotti"
   },
   "productCreation": {
     "addNewProduct": "Aggiungi Nuovo Prodotto",

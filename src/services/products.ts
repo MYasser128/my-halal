@@ -2,15 +2,26 @@ import {
   collection,
   deleteDoc,
   doc,
+  endAt,
+  getCountFromServer,
   getDoc,
   getDocs,
   limit,
   orderBy,
   query,
   startAfter,
+  startAt,
   updateDoc,
+  where,
+  type DocumentData,
+  type QueryConstraint,
+  type QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { db } from "../firebase";
+
+export const PRODUCTS_PAGE_SIZE = 20;
+export type ProductPageCursor = QueryDocumentSnapshot<DocumentData>;
+export type ProductListFilter = "all" | "halal";
 
 export interface Product {
   id: string;
@@ -56,52 +67,88 @@ export interface ProductUpdateData {
   lastUpdated?: any;
 }
 
-// Get all products with pagination
+export const getProductsCount = async (): Promise<number> => {
+  try {
+    const snapshot = await getCountFromServer(collection(db, "products"));
+    return snapshot.data().count;
+  } catch (error) {
+    console.error("Error counting products:", error);
+    return 0;
+  }
+};
+
+export const getHalalProductsCount = async (): Promise<number> => {
+  try {
+    const q = query(
+      collection(db, "products"),
+      where("halalStates.default", "==", "halal")
+    );
+    const snapshot = await getCountFromServer(q);
+    return snapshot.data().count;
+  } catch (error) {
+    console.error("Error counting halal products:", error);
+    return 0;
+  }
+};
+
+const fetchProductBatch = async (
+  lastDoc: ProductPageCursor | undefined,
+  pageSize: number,
+  statusFilter: ProductListFilter = "all"
+): Promise<{
+  docs: ProductPageCursor[];
+  lastDoc: ProductPageCursor | null;
+  hasMore: boolean;
+}> => {
+  const constraints: QueryConstraint[] = [];
+  if (statusFilter === "halal") {
+    // Equality + orderBy on the same field uses the automatic single-field
+    // index, so we get a full page of matching products without a composite.
+    constraints.push(where("halalStates.default", "==", "halal"));
+    constraints.push(orderBy("halalStates.default"));
+  } else {
+    constraints.push(orderBy("lastUpdated", "desc"));
+  }
+  if (lastDoc) {
+    constraints.push(startAfter(lastDoc));
+  }
+  constraints.push(limit(pageSize));
+  const querySnapshot = await getDocs(
+    query(collection(db, "products"), ...constraints)
+  );
+  const docs = querySnapshot.docs;
+  return {
+    docs,
+    lastDoc: docs[docs.length - 1] ?? null,
+    hasMore: docs.length === pageSize,
+  };
+};
+
+const toListedProduct = (docSnap: ProductPageCursor): Product =>
+  ({
+    id: docSnap.id,
+    ...docSnap.data(),
+  }) as Product;
+
 export const getAllProducts = async (
-  lastDoc?: any,
-  pageSize: number = 20
+  lastDoc?: ProductPageCursor,
+  pageSize: number = PRODUCTS_PAGE_SIZE,
+  statusFilter: ProductListFilter = "all"
 ): Promise<{
   products: Product[];
-  lastDoc: any;
+  lastDoc: ProductPageCursor | null;
   hasMore: boolean;
 }> => {
   try {
-    let q = query(
-      collection(db, "products"),
-      orderBy("lastUpdated", "desc"),
-      limit(pageSize)
-    );
-
-    if (lastDoc) {
-      q = query(
-        collection(db, "products"),
-        orderBy("lastUpdated", "desc"),
-        startAfter(lastDoc),
-        limit(pageSize)
-      );
-    }
-
-    const querySnapshot = await getDocs(q);
-    const products: Product[] = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Product[];
-
-    const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
-    const hasMore = querySnapshot.docs.length === pageSize;
-
+    const batch = await fetchProductBatch(lastDoc, pageSize, statusFilter);
     return {
-      products,
-      lastDoc: lastVisible,
-      hasMore,
+      products: batch.docs.map(toListedProduct),
+      lastDoc: batch.lastDoc,
+      hasMore: batch.hasMore,
     };
   } catch (error) {
     console.error("Error getting products:", error);
-    return {
-      products: [],
-      lastDoc: null,
-      hasMore: false,
-    };
+    throw error;
   }
 };
 
@@ -177,24 +224,53 @@ export const deleteProduct = async (productId: string): Promise<boolean> => {
   }
 };
 
-// Search products by name or barcode
+const toProduct = (
+  id: string,
+  data: DocumentData
+): Product => ({ id, ...data }) as Product;
+
+// Search products by barcode (exact) or name prefix
 export const searchProducts = async (
   searchTerm: string
 ): Promise<Product[]> => {
-  try {
-    // Get all products and filter client-side for now
-    // In a production app, you might want to use Algolia or similar for better search
-    const { products } = await getAllProducts();
+  const term = searchTerm.trim();
+  if (!term) return [];
 
-    const filteredProducts = products.filter(
-      (product) =>
-        product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.barcode?.includes(searchTerm)
+  const found = new Map<string, Product>();
+  const add = (product: Product | null) => {
+    if (product) found.set(product.id, product);
+  };
+
+  try {
+    add(await getProduct(term));
+    const compact = term.replace(/\s+/g, "");
+    if (compact !== term) {
+      add(await getProduct(compact));
+    }
+
+    const barcodeSnap = await getDocs(
+      query(collection(db, "products"), where("barcode", "==", term), limit(5))
+    );
+    barcodeSnap.docs.forEach((docSnap) =>
+      add(toProduct(docSnap.id, docSnap.data()))
     );
 
-    return filteredProducts;
+    const nameSnap = await getDocs(
+      query(
+        collection(db, "products"),
+        orderBy("name"),
+        startAt(term),
+        endAt(`${term}\uf8ff`),
+        limit(PRODUCTS_PAGE_SIZE)
+      )
+    );
+    nameSnap.docs.forEach((docSnap) =>
+      add(toProduct(docSnap.id, docSnap.data()))
+    );
+
+    return Array.from(found.values());
   } catch (error) {
     console.error("Error searching products:", error);
-    return [];
+    return Array.from(found.values());
   }
 };

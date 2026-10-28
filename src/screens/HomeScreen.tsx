@@ -10,7 +10,7 @@ import {
 import { User } from "firebase/auth";
 import { useTranslation } from "react-i18next";
 import { useAdmin } from "../hooks/useAdmin";
-import { BurgerMenu } from "../components/BurgerMenu";
+import { BurgerMenu, BurgerMenuProvider } from "../components/BurgerMenu";
 import { isRTL } from "../i18n";
 import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
 import { homeScreenStyles } from "../styles/HomeScreen.styles";
@@ -49,17 +49,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const { insets, headerStyle, screenBottomStyle } = useSafeAreaPadding();
 
   return (
+    <BurgerMenuProvider
+      user={user}
+      onLogout={onLogout}
+      onNavigateToLogin={onNavigateToLogin}
+      onNavigateToAdmin={onNavigateToAdmin}
+      isAdmin={isAdmin}
+    >
     <ScrollView
       style={homeScreenStyles.container}
       contentContainerStyle={screenBottomStyle}
     >
       <View style={[homeScreenStyles.header, headerStyle]}>
         <BurgerMenu
-          user={user}
-          onLogout={onLogout}
-          onNavigateToLogin={onNavigateToLogin}
-          onNavigateToAdmin={onNavigateToAdmin}
-          isAdmin={isAdmin}
           style={[
             homeScreenStyles.burgerMenu,
             { top: insets.top + spacing[2] },
@@ -124,5 +126,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </View>
       </View>
     </ScrollView>
+    </BurgerMenuProvider>
   );
 };

@@ -348,17 +348,47 @@ export const adminPanelStyles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[4],
   },
+
+  statCardSelected: {
+    borderWidth: 2,
+    borderColor: colors.primary[500],
+    backgroundColor: colors.primary[50],
+  },
+
+  statCardHalalSelected: {
+    borderWidth: 2,
+    borderColor: colors.success,
+    backgroundColor: colors.success + '15',
+  },
   
   statNumber: {
     ...textStyles.h2,
     color: colors.primary[600],
     marginBottom: spacing[1],
   },
+
+  statNumberSelected: {
+    color: colors.primary[700],
+  },
+
+  statNumberHalalSelected: {
+    color: colors.success,
+  },
   
   statLabel: {
     ...textStyles.caption,
     textAlign: 'center',
     color: colors.text.secondary,
+  },
+
+  statLabelSelected: {
+    color: colors.primary[700],
+    fontWeight: typography.fontWeight.semibold,
+  },
+
+  statLabelHalalSelected: {
+    color: colors.success,
+    fontWeight: typography.fontWeight.semibold,
   },
   
   // Error states
@@ -746,5 +776,55 @@ export const adminPanelStyles = StyleSheet.create({
     height: 80,
     borderRadius: borderRadius.base,
     backgroundColor: colors.background.tertiary,
+  },
+
+  productsLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing[4],
+    gap: spacing[2],
+  },
+
+  productsLoadingText: {
+    ...textStyles.bodySecondary,
+  },
+
+  paginationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing[2],
+    marginBottom: spacing[4],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[3],
+    backgroundColor: colors.background.primary,
+    borderRadius: borderRadius.lg,
+    ...shadows.sm,
+  },
+
+  paginationButton: {
+    ...buttonStyles.secondary,
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[3],
+    minWidth: 84,
+  },
+
+  paginationButtonDisabled: {
+    opacity: 0.4,
+  },
+
+  paginationButtonText: {
+    ...buttonStyles.secondaryText,
+    fontSize: typography.fontSize.sm,
+  },
+
+  paginationInfo: {
+    ...textStyles.body,
+    color: colors.text.secondary,
+    fontWeight: typography.fontWeight.medium,
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: spacing[2],
   },
 });

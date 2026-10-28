@@ -176,6 +176,7 @@
     "noProductsFound": "No Products Found",
     "noProductsMatch": "No products match your search criteria.",
     "noProductsInDatabase": "No products are currently in the database.",
+    "noProductsMatchFilter": "No products match this filter.",
     "editProduct": "Edit Product",
     "deleteProduct": "Delete Product",
     "deleteProductConfirm": "Are you sure you want to delete \"{{productName}}\"? This action cannot be undone.",
@@ -223,7 +224,11 @@
     "reportRejected": "Report rejected",
     "adminStatusGranted": "Admin status granted",
     "adminStatusRevoked": "Admin status revoked",
-    "failedToUpdateAdminStatus": "Failed to update admin status"
+    "failedToUpdateAdminStatus": "Failed to update admin status",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {{current}} of {{total}}",
+    "failedToSearchProducts": "Failed to search products"
   },
   "productCreation": {
     "addNewProduct": "Add New Product",

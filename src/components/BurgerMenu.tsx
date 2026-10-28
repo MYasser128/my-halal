@@ -1,94 +1,163 @@
-import React, { useEffect } from "react";
+import { User } from "firebase/auth";
+import React, { createContext, useContext, useEffect, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  View,
+  Animated,
+  BackHandler,
+  Dimensions,
+  Image,
+  PanResponder,
+  Platform,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  Animated,
-  Dimensions,
-  Modal,
   TouchableWithoutFeedback,
-  Image,
-  BackHandler,
-  Platform,
+  View,
 } from "react-native";
-import { useTranslation } from "react-i18next";
-import { User } from "firebase/auth";
-import { isRTL } from "../i18n";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { isRTL } from "../i18n";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
 interface BurgerMenuProps {
+  style?: any;
+}
+
+interface BurgerMenuProviderProps {
   user: User | null;
   onLogout: () => void;
   onNavigateToLogin: () => void;
   onNavigateToAdmin?: () => void;
   isAdmin?: boolean;
-  style?: any;
+  children: React.ReactNode;
 }
 
 const { width: screenWidth } = Dimensions.get("window");
+const SIDEBAR_WIDTH = Math.min(screenWidth * 0.8, 300);
+const EDGE_WIDTH = 28;
+const OPEN_THRESHOLD = 0.32;
 
-export const BurgerMenu: React.FC<BurgerMenuProps> = ({
+type DrawerContextValue = {
+  toggleSidebar: () => void;
+};
+
+const DrawerContext = createContext<DrawerContextValue | null>(null);
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+export const BurgerMenuProvider: React.FC<BurgerMenuProviderProps> = ({
   user,
   onLogout,
   onNavigateToLogin,
   onNavigateToAdmin,
   isAdmin,
-  style,
+  children,
 }) => {
   const { t, i18n } = useTranslation();
   const isCurrentRTL = isRTL(i18n.language);
   const insets = useSafeAreaInsets();
   const [isOpen, setIsOpen] = React.useState(false);
-  const [slideAnim] = React.useState(
-    new Animated.Value(isCurrentRTL ? screenWidth : -screenWidth)
-  );
+  const progress = useRef(new Animated.Value(0)).current;
+  const progressValue = useRef(0);
+  const dragStart = useRef(0);
+  const isRTLRef = useRef(isCurrentRTL);
+  isRTLRef.current = isCurrentRTL;
 
-  // Handle Android back button for sidebar modal
   useEffect(() => {
-    const backAction = () => {
-      if (Platform.OS === "android" && isOpen) {
-        closeSidebar();
-        return true; // Prevent default behavior
-      }
-      return false; // Allow default behavior
-    };
+    const id = progress.addListener(({ value }) => {
+      progressValue.current = value;
+    });
+    return () => progress.removeListener(id);
+  }, [progress]);
 
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
+  const finishTo = (open: boolean) => {
+    Animated.timing(progress, {
+      toValue: open ? 1 : 0,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      if (finished) setIsOpen(open);
+    });
+  };
+  const finishToRef = useRef(finishTo);
+  finishToRef.current = finishTo;
 
-    return () => backHandler.remove();
-  }, [isOpen]);
+  const openSidebar = () => {
+    setIsOpen(true);
+    finishTo(true);
+  };
+
+  const closeSidebar = () => {
+    finishTo(false);
+  };
 
   const toggleSidebar = () => {
-    if (isOpen) {
+    if (progressValue.current > 0.5) {
       closeSidebar();
     } else {
       openSidebar();
     }
   };
 
-  const openSidebar = () => {
-    setIsOpen(true);
-    Animated.timing(slideAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  };
+  useEffect(() => {
+    const backAction = () => {
+      if (Platform.OS === "android" && (isOpen || progressValue.current > 0)) {
+        closeSidebar();
+        return true;
+      }
+      return false;
+    };
 
-  const closeSidebar = () => {
-    Animated.timing(slideAnim, {
-      toValue: isCurrentRTL ? screenWidth : -screenWidth,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      setIsOpen(false);
-    });
-  };
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+    return () => backHandler.remove();
+  }, [isOpen]);
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_evt, gesture) => {
+          const horizontal = Math.abs(gesture.dx) > Math.abs(gesture.dy) + 6;
+          if (!horizontal) return false;
+          const rtl = isRTLRef.current;
+          const opening = rtl ? gesture.dx < -8 : gesture.dx > 8;
+          const closing = rtl ? gesture.dx > 8 : gesture.dx < -8;
+          if (progressValue.current < 0.05) return opening;
+          return closing;
+        },
+        onPanResponderTerminationRequest: () => false,
+        onPanResponderGrant: () => {
+          dragStart.current = progressValue.current;
+          setIsOpen(true);
+        },
+        onPanResponderMove: (_evt, gesture) => {
+          const delta = isRTLRef.current ? -gesture.dx : gesture.dx;
+          progress.setValue(
+            clamp(dragStart.current + delta / SIDEBAR_WIDTH, 0, 1)
+          );
+        },
+        onPanResponderRelease: (_evt, gesture) => {
+          const velocity = isRTLRef.current ? -gesture.vx : gesture.vx;
+          const shouldOpen =
+            progressValue.current > OPEN_THRESHOLD || velocity > 0.55;
+          finishToRef.current(shouldOpen);
+        },
+      }),
+    [progress]
+  );
+
+  const translateX = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: isCurrentRTL ? [SIDEBAR_WIDTH, 0] : [-SIDEBAR_WIDTH, 0],
+  });
+
+  const overlayOpacity = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.5],
+  });
 
   const handleLogout = () => {
     closeSidebar();
@@ -106,43 +175,32 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
   };
 
   const styles = StyleSheet.create({
-    container: {
-      ...style,
-    },
-    burgerButton: {
-      padding: 8,
-      borderRadius: 6,
-    },
-    burgerIcon: {
-      flexDirection: "column",
-      justifyContent: "space-between",
-      width: 20,
-      height: 16,
-      position: "absolute",
-      ...(isCurrentRTL
-        ? { left: "auto", right: 0 }
-        : { left: 0, right: "auto" }),
-    },
-    burgerLine: {
-      height: 2,
-      backgroundColor: "#ffffff",
-      borderRadius: 1,
-    },
-    modalOverlay: {
+    host: {
       flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+    },
+    edge: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      width: EDGE_WIDTH,
+      zIndex: 20,
+      ...(isCurrentRTL ? { right: 0 } : { left: 0 }),
+    },
+    overlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: "#000",
+      zIndex: 21,
     },
     sidebar: {
       position: "absolute",
       top: 0,
       bottom: 0,
-      width: screenWidth * 0.8,
-      maxWidth: 300,
+      width: SIDEBAR_WIDTH,
       backgroundColor: "#ffffff",
       paddingTop: insets.top + 20,
       paddingHorizontal: 20,
       paddingBottom: insets.bottom + 20,
-      flex: 1,
+      zIndex: 22,
       ...(isCurrentRTL ? { right: 0 } : { left: 0 }),
     },
     sidebarHeader: {
@@ -179,35 +237,10 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
       fontSize: 18,
       color: "#6c757d",
     },
-    menuItem: {
-      flexDirection: isCurrentRTL ? "row-reverse" : "row",
-      alignItems: "center",
-      paddingVertical: 15,
-      paddingHorizontal: 12,
-      borderRadius: 8,
-      marginBottom: 8,
-    },
-    menuItemActive: {
-      backgroundColor: "#e3f2fd",
-    },
-    menuItemText: {
-      fontSize: 16,
-      color: "#495057",
-      marginLeft: isCurrentRTL ? 0 : 12,
-      marginRight: isCurrentRTL ? 12 : 0,
-    },
-    menuItemTextActive: {
-      color: "#1976d2",
-      fontWeight: "600",
-    },
     menuIcon: {
       fontSize: 18,
       color: "#6c757d",
     },
-    menuIconActive: {
-      color: "#1976d2",
-    },
-
     languageSectionTitle: {
       fontSize: 14,
       fontWeight: "600",
@@ -289,109 +322,132 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
   });
 
   return (
+    <DrawerContext.Provider value={{ toggleSidebar }}>
+      <View style={styles.host}>
+        {children}
+
+        <View
+          style={styles.edge}
+          {...panResponder.panHandlers}
+          pointerEvents={isOpen ? "none" : "auto"}
+        />
+
+        <TouchableWithoutFeedback onPress={closeSidebar}>
+          <Animated.View
+            pointerEvents={isOpen ? "auto" : "none"}
+            style={[styles.overlay, { opacity: overlayOpacity }]}
+          />
+        </TouchableWithoutFeedback>
+
+        <Animated.View
+          style={[styles.sidebar, { transform: [{ translateX }] }]}
+          pointerEvents={isOpen ? "auto" : "none"}
+          {...panResponder.panHandlers}
+        >
+          <View style={styles.sidebarHeader}>
+            <View style={styles.sidebarTitleContainer}>
+              <Image
+                source={require("../../assets/logo-black.png")}
+                style={styles.sidebarLogo}
+                resizeMode="contain"
+              />
+              <Text style={styles.sidebarTitle}>HalalScan</Text>
+            </View>
+            <TouchableOpacity style={styles.closeButton} onPress={closeSidebar}>
+              <Text style={styles.closeIcon}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          {user && (
+            <View style={styles.userInfo}>
+              <Text style={styles.userName}>
+                {user.displayName || user.email}
+              </Text>
+              <Text style={styles.userEmail}>{user.email}</Text>
+            </View>
+          )}
+
+          <View>
+            <Text style={styles.languageSectionTitle}>
+              {t("language.selectLanguage")}
+            </Text>
+            <LanguageSwitcher
+              compact={true}
+              style={{ backgroundColor: "transparent" }}
+            />
+          </View>
+
+          <View style={styles.bottomSection}>
+            {user && isAdmin && (
+              <View style={styles.adminSection}>
+                <TouchableOpacity style={styles.adminButton} onPress={handleAdmin}>
+                  <Text style={styles.menuIcon}>⚙️</Text>
+                  <Text style={styles.adminButtonText}>
+                    {t("home.adminPanel")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            {user ? (
+              <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <Text style={styles.menuIcon}>🚪</Text>
+                <Text style={styles.logoutButtonText}>{t("home.logout")}</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+                <Text style={styles.menuIcon}>🔑</Text>
+                <Text style={styles.loginButtonText}>{t("auth.signIn")}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </Animated.View>
+      </View>
+    </DrawerContext.Provider>
+  );
+};
+
+export const BurgerMenu: React.FC<BurgerMenuProps> = ({ style }) => {
+  const drawer = useContext(DrawerContext);
+  const { i18n } = useTranslation();
+  const isCurrentRTL = isRTL(i18n.language);
+
+  const styles = StyleSheet.create({
+    container: {
+      ...style,
+    },
+    burgerButton: {
+      padding: 8,
+      borderRadius: 6,
+    },
+    burgerIcon: {
+      flexDirection: "column",
+      justifyContent: "space-between",
+      width: 20,
+      height: 16,
+      position: "absolute",
+      ...(isCurrentRTL
+        ? { left: "auto", right: 0 }
+        : { left: 0, right: "auto" }),
+    },
+    burgerLine: {
+      height: 2,
+      backgroundColor: "#ffffff",
+      borderRadius: 1,
+    },
+  });
+
+  return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.burgerButton} onPress={toggleSidebar}>
+      <TouchableOpacity
+        style={styles.burgerButton}
+        onPress={drawer?.toggleSidebar}
+      >
         <View style={styles.burgerIcon}>
           <View style={styles.burgerLine} />
           <View style={[styles.burgerLine, { marginVertical: 4 }]} />
           <View style={styles.burgerLine} />
         </View>
       </TouchableOpacity>
-
-      <Modal
-        visible={isOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={closeSidebar}
-      >
-        <TouchableWithoutFeedback onPress={closeSidebar}>
-          <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <Animated.View
-                style={[
-                  styles.sidebar,
-                  {
-                    transform: [{ translateX: slideAnim }],
-                  },
-                ]}
-              >
-                <View style={styles.sidebarHeader}>
-                  <View style={styles.sidebarTitleContainer}>
-                    <Image
-                      source={require("../../assets/logo-black.png")}
-                      style={styles.sidebarLogo}
-                      resizeMode="contain"
-                    />
-                    <Text style={styles.sidebarTitle}>HalalScan</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={closeSidebar}
-                  >
-                    <Text style={styles.closeIcon}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {user && (
-                  <View style={styles.userInfo}>
-                    <Text style={styles.userName}>
-                      {user.displayName || user.email}
-                    </Text>
-                    <Text style={styles.userEmail}>{user.email}</Text>
-                  </View>
-                )}
-
-                <View>
-                  <Text style={styles.languageSectionTitle}>
-                    {t("language.selectLanguage")}
-                  </Text>
-                  <LanguageSwitcher
-                    compact={true}
-                    style={{ backgroundColor: "transparent" }}
-                  />
-                </View>
-
-                <View style={styles.bottomSection}>
-                  {user && isAdmin && (
-                    <View style={styles.adminSection}>
-                      <TouchableOpacity
-                        style={styles.adminButton}
-                        onPress={handleAdmin}
-                      >
-                        <Text style={styles.menuIcon}>⚙️</Text>
-                        <Text style={styles.adminButtonText}>
-                          {t("home.adminPanel")}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                  {user ? (
-                    <TouchableOpacity
-                      style={styles.logoutButton}
-                      onPress={handleLogout}
-                    >
-                      <Text style={styles.menuIcon}>🚪</Text>
-                      <Text style={styles.logoutButtonText}>
-                        {t("home.logout")}
-                      </Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity
-                      style={styles.loginButton}
-                      onPress={handleLogin}
-                    >
-                      <Text style={styles.menuIcon}>🔑</Text>
-                      <Text style={styles.loginButtonText}>
-                        {t("auth.signIn")}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </Animated.View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
     </View>
   );
 };
