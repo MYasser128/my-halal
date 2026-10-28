@@ -35,6 +35,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const { headerStyle, screenBottomStyle } = useSafeAreaPadding();
   const [formData, setFormData] = useState({
     name: '',
+    barcode: '',
     halalStatus: 'halal' as 'halal' | 'haram' | 'suspicious',
   });
   const [images, setImages] = useState<string[]>([]);
@@ -44,6 +45,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
     if (product) {
       setFormData({
         name: product.name || '',
+        barcode: product.barcode || product.id || '',
         halalStatus: (product.halalStates?.default === 'halal' || product.halalStates?.default === 'haram' || product.halalStates?.default === 'suspicious') 
           ? product.halalStates.default 
           : 'halal',
@@ -60,8 +62,25 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
       return;
     }
 
+    const barcode = formData.barcode.trim();
+    if (!barcode) {
+      Alert.alert(t('admin.validationError'), t('scanner.pleaseEnterBarcode'));
+      return;
+    }
+    if (barcode !== (product.barcode || product.id)) {
+      if (!/^\d+$/.test(barcode)) {
+        Alert.alert(t('admin.validationError'), t('scanner.barcodeMustContainOnlyNumbers'));
+        return;
+      }
+      if (barcode.length < 8 || barcode.length > 13) {
+        Alert.alert(t('admin.validationError'), t('scanner.barcodeMustBe8To13Digits'));
+        return;
+      }
+    }
+
     const updateData: ProductUpdateData = {
       name: formData.name.trim(),
+      barcode,
       halalStates: {
         default: formData.halalStatus,
       },
@@ -75,6 +94,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const handleClose = () => {
     setFormData({
       name: '',
+      barcode: '',
       halalStatus: 'halal',
     });
     setImages([]);
@@ -115,6 +135,18 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
             </View>
 
             <View style={adminPanelStyles.formGroup}>
+              <Text style={adminPanelStyles.formLabel}>{t('admin.barcode')} *</Text>
+              <TextInput
+                style={adminPanelStyles.formInput}
+                value={formData.barcode}
+                onChangeText={(text) => setFormData({ ...formData, barcode: text })}
+                placeholder={t('admin.barcode')}
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="number-pad"
+              />
+            </View>
+
+            <View style={adminPanelStyles.formGroup}>
               <Text style={adminPanelStyles.formLabel}>{t('admin.halalStatus')}</Text>
               <View style={adminPanelStyles.radioGroup}>
                 {[
@@ -146,7 +178,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
             <ImageUpload
               images={images}
               onImagesChange={setImages}
-              productId={product.id}
+              productId={formData.barcode.trim() || product.id}
               maxImages={5}
             />
 

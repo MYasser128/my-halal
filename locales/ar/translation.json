@@ -228,7 +228,8 @@
     "previous": "السابق",
     "next": "التالي",
     "pageOf": "صفحة {{current}} من {{total}}",
-    "failedToSearchProducts": "فشل البحث في المنتجات"
+    "failedToSearchProducts": "فشل البحث في المنتجات",
+    "barcodeExists": "يوجد منتج بهذا الباركود بالفعل."
   },
   "productCreation": {
     "addNewProduct": "إضافة منتج جديد",

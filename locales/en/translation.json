@@ -228,7 +228,8 @@
     "previous": "Previous",
     "next": "Next",
     "pageOf": "Page {{current}} of {{total}}",
-    "failedToSearchProducts": "Failed to search products"
+    "failedToSearchProducts": "Failed to search products",
+    "barcodeExists": "A product with this barcode already exists."
   },
   "productCreation": {
     "addNewProduct": "Add New Product",

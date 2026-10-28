@@ -27,6 +27,7 @@ import {
   updateProduct,
   deleteProduct,
   searchProducts,
+  ProductBarcodeExistsError,
   Product,
   ProductListFilter,
   ProductPageCursor,
@@ -287,6 +288,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
         Alert.alert(t("common.error"), t("admin.productUpdateFailed"));
       }
     } catch (error) {
+      if (error instanceof ProductBarcodeExistsError) {
+        Alert.alert(t("common.error"), t("admin.barcodeExists"));
+        return;
+      }
       Alert.alert(t("common.error"), t("admin.productUpdateFailed"));
     }
   };

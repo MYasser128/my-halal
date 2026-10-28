@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Alert, TouchableOpacity, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, BackHandler } from "react-native";
+import { View, Text, Alert, TouchableOpacity, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, BackHandler, ScrollView } from "react-native";
 import { useTranslation } from "react-i18next";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -320,9 +320,16 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
   return (
     <KeyboardAvoidingView 
       style={scannerScreenStyles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior="padding"
+      keyboardVerticalOffset={0}
     >
-      <View style={[scannerScreenStyles.header, overlayHeaderStyle]}>
+      <View
+        style={[
+          scannerScreenStyles.header,
+          overlayHeaderStyle,
+          manualInputMode && scannerScreenStyles.manualHeader,
+        ]}
+      >
         <TouchableOpacity style={scannerScreenStyles.backButton} onPress={onBack}>
           <Text style={scannerScreenStyles.backButtonText}>← {t('common.back')}</Text>
         </TouchableOpacity>
@@ -345,9 +352,29 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
               {t('scanner.positionBarcodeInFrame')}
             </Text>
           </View>
+
+          <View style={[scannerScreenStyles.bottomActions, floatingBottomStyle]}>
+            <TouchableOpacity 
+              style={scannerScreenStyles.toggleButton} 
+              onPress={handleToggleManualInput}
+            >
+              <Text style={scannerScreenStyles.toggleButtonText}>
+                {t('scanner.enterManually')}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </>
       ) : (
-        <View style={scannerScreenStyles.manualInputContainer}>
+        <ScrollView
+          style={scannerScreenStyles.manualInputContainer}
+          contentContainerStyle={[
+            scannerScreenStyles.manualInputScroll,
+            { paddingBottom: insets.bottom + 24 },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          automaticallyAdjustKeyboardInsets
+        >
           <View style={scannerScreenStyles.manualInputCard}>
             <Text style={scannerScreenStyles.manualInputTitle}>{t('scanner.enterBarcodeManually')}</Text>
             <Text style={scannerScreenStyles.manualInputDescription}>
@@ -382,20 +409,18 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
             >
               <Text style={scannerScreenStyles.submitButtonText}>{t('scanner.verifyProduct')}</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={scannerScreenStyles.manualCameraButton}
+              onPress={handleToggleManualInput}
+            >
+              <Text style={scannerScreenStyles.manualCameraButtonText}>
+                {t('scanner.useCamera')}
+              </Text>
+            </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       )}
-      
-      <View style={[scannerScreenStyles.bottomActions, floatingBottomStyle]}>
-        <TouchableOpacity 
-          style={scannerScreenStyles.toggleButton} 
-          onPress={handleToggleManualInput}
-        >
-          <Text style={scannerScreenStyles.toggleButtonText}>
-            {manualInputMode ? t('scanner.useCamera') : t('scanner.enterManually')}
-          </Text>
-        </TouchableOpacity>
-      </View>
     </KeyboardAvoidingView>
   );
 }

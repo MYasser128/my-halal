@@ -228,7 +228,8 @@
     "previous": "Precedente",
     "next": "Successivo",
     "pageOf": "Pagina {{current}} di {{total}}",
-    "failedToSearchProducts": "Impossibile cercare i prodotti"
+    "failedToSearchProducts": "Impossibile cercare i prodotti",
+    "barcodeExists": "Esiste già un prodotto con questo codice a barre."
   },
   "productCreation": {
     "addNewProduct": "Aggiungi Nuovo Prodotto",

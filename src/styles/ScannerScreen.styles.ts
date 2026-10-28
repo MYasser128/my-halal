@@ -292,13 +292,22 @@ export const scannerScreenStyles = StyleSheet.create({
     textAlign: 'center',
   },
   
+  manualHeader: {
+    position: 'relative',
+  },
+
   // Manual input styles
   manualInputContainer: {
     flex: 1,
+    backgroundColor: colors.neutral[900],
+  },
+
+  manualInputScroll: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing[6],
-    backgroundColor: colors.neutral[900],
+    paddingVertical: spacing[6],
   },
   
   manualInputCard: {
@@ -306,6 +315,7 @@ export const scannerScreenStyles = StyleSheet.create({
     padding: spacing[8],
     borderRadius: borderRadius.xl,
     alignItems: 'center',
+    alignSelf: 'stretch',
     width: '100%',
     maxWidth: 400,
     ...shadows.lg,
@@ -351,6 +361,23 @@ export const scannerScreenStyles = StyleSheet.create({
   submitButtonText: {
     ...buttonStyles.primaryText,
     fontSize: typography.fontSize.lg,
+  },
+
+  manualCameraButton: {
+    marginTop: spacing[4],
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[6],
+    borderRadius: borderRadius.full,
+    borderWidth: 2,
+    borderColor: colors.primary[500],
+    width: '100%',
+    alignItems: 'center',
+  },
+
+  manualCameraButtonText: {
+    ...textStyles.button,
+    color: colors.primary[600],
+    fontSize: typography.fontSize.base,
   },
   
   // Bottom actions

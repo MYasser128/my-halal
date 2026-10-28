@@ -9,10 +9,12 @@ import {
   limit,
   orderBy,
   query,
+  setDoc,
   startAfter,
   startAt,
   updateDoc,
   where,
+  writeBatch,
   type DocumentData,
   type QueryConstraint,
   type QueryDocumentSnapshot,
@@ -65,7 +67,18 @@ export interface ProductUpdateData {
   description?: string;
   images?: string[]; // Array of Firebase Storage URLs
   lastUpdated?: any;
+  barcode?: string;
 }
+
+export class ProductBarcodeExistsError extends Error {
+  constructor() {
+    super("BARCODE_EXISTS");
+    this.name = "ProductBarcodeExistsError";
+  }
+}
+
+export const toProductDocId = (barcode: string): string =>
+  barcode.trim().replace(/[^a-zA-Z0-9_-]/g, "_");
 
 export const getProductsCount = async (): Promise<number> => {
   try {
@@ -198,15 +211,38 @@ export const updateProduct = async (
       timestamp: new Date(),
     });
 
+    const nextBarcode = (updateData.barcode || currentProduct.barcode || productId).trim();
+    const nextId = toProductDocId(nextBarcode);
     const updatePayload = {
       ...updateData,
+      barcode: nextBarcode,
       lastUpdated: new Date(),
       verificationHistory,
     };
 
+    if (nextId !== productId) {
+      const nextRef = doc(db, "products", nextId);
+      const nextSnap = await getDoc(nextRef);
+      if (nextSnap.exists()) {
+        throw new ProductBarcodeExistsError();
+      }
+
+      const batch = writeBatch(db);
+      batch.set(nextRef, {
+        ...currentProduct,
+        ...updatePayload,
+      });
+      batch.delete(productRef);
+      await batch.commit();
+      return true;
+    }
+
     await updateDoc(productRef, updatePayload);
     return true;
   } catch (error) {
+    if (error instanceof ProductBarcodeExistsError) {
+      throw error;
+    }
     console.error("Error updating product:", error);
     return false;
   }
