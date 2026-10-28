@@ -10,9 +10,10 @@ import {
   StyleSheet,
   ImageStyle,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { pickImage, takePhoto, uploadImageToStorage, ImageUploadResult } from '../services/imageUpload';
 import { colors } from '../styles/theme';
-import { useTranslation } from 'react-i18next';
+import { ImageViewer } from './ImageViewer';
 
 interface ImageUploadProps {
   images: string[];
@@ -32,6 +33,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [viewingIndex, setViewingIndex] = useState<number | null>(null);
 
   const handlePickImage = async () => {
     if (disabled || uploading) return;
@@ -128,10 +130,20 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
   const renderImage = (imageUrl: string, index: number) => (
     <View key={index} style={styles.imageContainer}>
-      <Image source={{ uri: imageUrl }} style={{width: 100,
-    height: 100,
-    borderRadius: 8,
-    backgroundColor: colors.background.secondary}}  />
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => setViewingIndex(index)}
+      >
+        <Image
+          source={{ uri: imageUrl }}
+          style={{
+            width: 100,
+            height: 100,
+            borderRadius: 8,
+            backgroundColor: colors.background.secondary,
+          }}
+        />
+      </TouchableOpacity>
       {!disabled && (
         <TouchableOpacity
           style={styles.removeButton}
@@ -181,6 +193,14 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           )}
         </TouchableOpacity>
       )}
+
+      <ImageViewer
+        visible={viewingIndex !== null}
+        images={images}
+        currentIndex={viewingIndex ?? 0}
+        onClose={() => setViewingIndex(null)}
+        onIndexChange={setViewingIndex}
+      />
 
       {images.length === 0 && !uploading && (
         <View style={styles.placeholderContainer}>

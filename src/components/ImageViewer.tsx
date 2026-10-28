@@ -1,16 +1,15 @@
-import React from 'react';
+import React from "react";
 import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
+  Dimensions,
   Modal,
   StyleSheet,
-  Dimensions,
-  ScrollView,
-} from 'react-native';
-import { useSafeAreaPadding } from '../hooks/useSafeAreaPadding';
-import { colors } from '../styles/theme';
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
+import { colors } from "../styles/theme";
+import { ZoomableImage } from "./ZoomableImage";
 
 interface ImageViewerProps {
   visible: boolean;
@@ -20,7 +19,7 @@ interface ImageViewerProps {
   onIndexChange?: (index: number) => void;
 }
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 export const ImageViewer: React.FC<ImageViewerProps> = ({
   visible,
@@ -30,6 +29,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   onIndexChange,
 }) => {
   const { headerStyle, screenBottomStyle } = useSafeAreaPadding();
+  const imageUrl = images[currentIndex];
 
   const handlePrevious = () => {
     if (onIndexChange && currentIndex > 0) {
@@ -43,7 +43,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     }
   };
 
-  if (!visible || images.length === 0) return null;
+  if (!visible || images.length === 0 || !imageUrl) return null;
 
   return (
     <Modal
@@ -63,30 +63,11 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
         </View>
 
         <View style={styles.imageContainer}>
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            contentOffset={{ x: currentIndex * screenWidth, y: 0 }}
-            onMomentumScrollEnd={(event) => {
-              const newIndex = Math.round(
-                event.nativeEvent.contentOffset.x / screenWidth
-              );
-              if (onIndexChange && newIndex !== currentIndex) {
-                onIndexChange(newIndex);
-              }
-            }}
-          >
-            {images.map((imageUrl, index) => (
-              <View key={index} style={styles.imageWrapper}>
-                <Image
-                  source={{ uri: imageUrl }}
-                  style={styles.image}
-                  resizeMode="contain"
-                />
-              </View>
-            ))}
-          </ScrollView>
+          <ZoomableImage
+            key={`${currentIndex}-${imageUrl}`}
+            uri={imageUrl}
+            style={styles.image}
+          />
         </View>
 
         {images.length > 1 && (
@@ -122,12 +103,12 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: "rgba(0, 0, 0, 0.9)",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 15,
   },
@@ -135,36 +116,30 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   closeButtonText: {
     color: colors.text.inverse,
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   imageCounter: {
     color: colors.text.inverse,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   imageContainer: {
     flex: 1,
-  },
-  imageWrapper: {
-    width: screenWidth,
-    height: screenHeight - 120, // Account for header and navigation
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   image: {
     width: screenWidth,
     height: screenHeight - 120,
   },
   navigation: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 15,
   },
@@ -172,9 +147,9 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   navButtonDisabled: {
     opacity: 0.3,
@@ -182,6 +157,6 @@ const styles = StyleSheet.create({
   navButtonText: {
     color: colors.text.inverse,
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
