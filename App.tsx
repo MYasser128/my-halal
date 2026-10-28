@@ -18,7 +18,7 @@ import { HomeScreen } from "./src/screens/HomeScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
 import { RegisterScreen } from "./src/screens/RegisterScreen";
 import ScannerScreen from "./src/screens/ScannerScreen";
-import { onAuthStateChange } from "./src/services/auth";
+import { logout, onAuthStateChange } from "./src/services/auth";
 
 type AuthScreen = "login" | "register";
 type AppScreen = "home" | "scanner" | "admin" | "login" | "register";
@@ -116,7 +116,12 @@ export default function App() {
     // Note: User profile is already created and updated in the login/register screens
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
     setUser(null);
     setCurrentScreen("home");
     setNavigationHistory(["home"]);
