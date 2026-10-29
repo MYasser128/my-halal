@@ -104,10 +104,17 @@ export const getHalalProductsCount = async (): Promise<number> => {
   }
 };
 
-const fetchProductBatch = async (
+const isFailedPrecondition = (error: unknown): boolean =>
+  typeof error === "object" &&
+  error !== null &&
+  "code" in error &&
+  (error as { code: string }).code === "failed-precondition";
+
+const runProductBatchQuery = async (
   lastDoc: ProductPageCursor | undefined,
   pageSize: number,
-  statusFilter: ProductListFilter = "all"
+  statusFilter: ProductListFilter,
+  orderHalalByLastUpdated: boolean
 ): Promise<{
   docs: ProductPageCursor[];
   lastDoc: ProductPageCursor | null;
@@ -115,10 +122,12 @@ const fetchProductBatch = async (
 }> => {
   const constraints: QueryConstraint[] = [];
   if (statusFilter === "halal") {
-    // Equality + orderBy on the same field uses the automatic single-field
-    // index, so we get a full page of matching products without a composite.
     constraints.push(where("halalStates.default", "==", "halal"));
-    constraints.push(orderBy("halalStates.default"));
+    constraints.push(
+      orderHalalByLastUpdated
+        ? orderBy("lastUpdated", "desc")
+        : orderBy("halalStates.default")
+    );
   } else {
     constraints.push(orderBy("lastUpdated", "desc"));
   }
@@ -135,6 +144,25 @@ const fetchProductBatch = async (
     lastDoc: docs[docs.length - 1] ?? null,
     hasMore: docs.length === pageSize,
   };
+};
+
+const fetchProductBatch = async (
+  lastDoc: ProductPageCursor | undefined,
+  pageSize: number,
+  statusFilter: ProductListFilter = "all"
+): Promise<{
+  docs: ProductPageCursor[];
+  lastDoc: ProductPageCursor | null;
+  hasMore: boolean;
+}> => {
+  try {
+    return await runProductBatchQuery(lastDoc, pageSize, statusFilter, true);
+  } catch (error) {
+    if (statusFilter === "halal" && isFailedPrecondition(error)) {
+      return await runProductBatchQuery(lastDoc, pageSize, statusFilter, false);
+    }
+    throw error;
+  }
 };
 
 const toListedProduct = (docSnap: ProductPageCursor): Product =>
@@ -265,6 +293,26 @@ const toProduct = (
   data: DocumentData
 ): Product => ({ id, ...data }) as Product;
 
+const isLikelyBarcodeTerm = (term: string): boolean => {
+  const compact = term.replace(/\s+/g, "");
+  if (!compact) return false;
+  if (/^\d+$/.test(compact)) return true;
+  return !/\s/.test(term) && /\d/.test(compact) && compact.length >= 6;
+};
+
+const searchByNamePrefix = async (term: string): Promise<Product[]> => {
+  const nameSnap = await getDocs(
+    query(
+      collection(db, "products"),
+      orderBy("name"),
+      startAt(term),
+      endAt(`${term}\uf8ff`),
+      limit(PRODUCTS_PAGE_SIZE)
+    )
+  );
+  return nameSnap.docs.map((docSnap) => toProduct(docSnap.id, docSnap.data()));
+};
+
 // Search products by barcode (exact) or name prefix
 export const searchProducts = async (
   searchTerm: string
@@ -278,31 +326,40 @@ export const searchProducts = async (
   };
 
   try {
-    add(await getProduct(term));
-    const compact = term.replace(/\s+/g, "");
-    if (compact !== term) {
-      add(await getProduct(compact));
+    if (isLikelyBarcodeTerm(term)) {
+      const compact = term.replace(/\s+/g, "");
+      add(await getProduct(toProductDocId(term)));
+      if (compact !== term) {
+        add(await getProduct(toProductDocId(compact)));
+      }
+
+      const barcodeValues = new Set([term, compact]);
+      await Promise.all(
+        [...barcodeValues].map(async (value) => {
+          const barcodeSnap = await getDocs(
+            query(
+              collection(db, "products"),
+              where("barcode", "==", value),
+              limit(5)
+            )
+          );
+          barcodeSnap.docs.forEach((docSnap) =>
+            add(toProduct(docSnap.id, docSnap.data()))
+          );
+        })
+      );
+    } else {
+      const nameTerms = new Set([term]);
+      const titled = `${term.charAt(0).toUpperCase()}${term.slice(1)}`;
+      const lowered = `${term.charAt(0).toLowerCase()}${term.slice(1)}`;
+      if (titled !== term) nameTerms.add(titled);
+      if (lowered !== term) nameTerms.add(lowered);
+
+      const nameResults = await Promise.all(
+        [...nameTerms].map((nameTerm) => searchByNamePrefix(nameTerm))
+      );
+      nameResults.flat().forEach(add);
     }
-
-    const barcodeSnap = await getDocs(
-      query(collection(db, "products"), where("barcode", "==", term), limit(5))
-    );
-    barcodeSnap.docs.forEach((docSnap) =>
-      add(toProduct(docSnap.id, docSnap.data()))
-    );
-
-    const nameSnap = await getDocs(
-      query(
-        collection(db, "products"),
-        orderBy("name"),
-        startAt(term),
-        endAt(`${term}\uf8ff`),
-        limit(PRODUCTS_PAGE_SIZE)
-      )
-    );
-    nameSnap.docs.forEach((docSnap) =>
-      add(toProduct(docSnap.id, docSnap.data()))
-    );
 
     return Array.from(found.values());
   } catch (error) {

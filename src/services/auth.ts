@@ -5,8 +5,33 @@ import {
   onAuthStateChanged,
   User
 } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getCountFromServer,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  setDoc,
+  startAfter,
+  updateDoc,
+  type DocumentData,
+  type QueryConstraint,
+  type QueryDocumentSnapshot,
+} from "firebase/firestore";
 import { auth, db } from "../firebase";
+
+export const USERS_PAGE_SIZE = 20;
+export type UserPageCursor = QueryDocumentSnapshot<DocumentData>;
+
+export interface AdminUserListItem {
+  id: string;
+  email?: string;
+  displayName?: string;
+  isAdmin?: boolean;
+}
 
 export const register = (email: string, pass: string) => createUserWithEmailAndPassword(auth, email, pass);
 export const login = (email: string, pass: string) => signInWithEmailAndPassword(auth, email, pass);
@@ -95,6 +120,48 @@ export const getUserProfile = async (user: User) => {
       displayName: user.displayName || user.email?.split('@')[0] || 'User',
       receiveUpdates: false,
     };
+  }
+};
+
+export const getUsersCount = async (): Promise<number> => {
+  try {
+    const snapshot = await getCountFromServer(collection(db, "users"));
+    return snapshot.data().count;
+  } catch (error) {
+    console.error("Error counting users:", error);
+    return 0;
+  }
+};
+
+export const getUsers = async (
+  lastDoc?: UserPageCursor,
+  pageSize: number = USERS_PAGE_SIZE
+): Promise<{
+  users: AdminUserListItem[];
+  lastDoc: UserPageCursor | null;
+  hasMore: boolean;
+}> => {
+  try {
+    const constraints: QueryConstraint[] = [orderBy("email")];
+    if (lastDoc) {
+      constraints.push(startAfter(lastDoc));
+    }
+    constraints.push(limit(pageSize));
+    const querySnapshot = await getDocs(
+      query(collection(db, "users"), ...constraints)
+    );
+    const docs = querySnapshot.docs;
+    return {
+      users: docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      })),
+      lastDoc: docs[docs.length - 1] ?? null,
+      hasMore: docs.length === pageSize,
+    };
+  } catch (error) {
+    console.error("Error getting users:", error);
+    throw error;
   }
 };
 

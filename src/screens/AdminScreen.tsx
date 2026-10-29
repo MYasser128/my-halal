@@ -10,16 +10,24 @@ import {
   BackHandler,
   Platform,
 } from "react-native";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
-import { setAdminStatus } from "../services/auth";
+import {
+  getUsers,
+  getUsersCount,
+  setAdminStatus,
+  USERS_PAGE_SIZE,
+  AdminUserListItem,
+  UserPageCursor,
+} from "../services/auth";
 import {
   getPendingReports,
+  getPendingReportsCount,
+  getReportsCount,
   approveReport,
   rejectReport,
-  getAllReports,
+  REPORTS_PAGE_SIZE,
+  Report,
+  ReportPageCursor,
 } from "../services/reports";
-import { Report } from "../services/reports";
 import {
   getAllProducts,
   getHalalProductsCount,
@@ -47,6 +55,56 @@ interface AdminScreenProps {
   onBack: () => void;
 }
 
+const AdminPagination: React.FC<{
+  page: number;
+  hasMore: boolean;
+  loading: boolean;
+  total: number;
+  pageSize: number;
+  onPrev: () => void;
+  onNext: () => void;
+}> = ({ page, hasMore, loading, total, pageSize, onPrev, onNext }) => {
+  const { t } = useTranslation();
+  if (!(total > pageSize || hasMore || page > 1)) {
+    return null;
+  }
+
+  return (
+    <View style={adminPanelStyles.paginationContainer}>
+      <TouchableOpacity
+        style={[
+          adminPanelStyles.paginationButton,
+          page <= 1 && adminPanelStyles.paginationButtonDisabled,
+        ]}
+        disabled={page <= 1 || loading}
+        onPress={onPrev}
+      >
+        <Text style={adminPanelStyles.paginationButtonText}>
+          {t("admin.previous")}
+        </Text>
+      </TouchableOpacity>
+      <Text style={adminPanelStyles.paginationInfo}>
+        {t("admin.pageOf", {
+          current: page,
+          total: Math.max(page, Math.ceil(total / pageSize) || 1),
+        })}
+      </Text>
+      <TouchableOpacity
+        style={[
+          adminPanelStyles.paginationButton,
+          !hasMore && adminPanelStyles.paginationButtonDisabled,
+        ]}
+        disabled={!hasMore || loading}
+        onPress={onNext}
+      >
+        <Text style={adminPanelStyles.paginationButtonText}>
+          {t("admin.next")}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 export const AdminScreen: React.FC<AdminScreenProps> = ({
   currentUserId,
   onBack,
@@ -54,8 +112,16 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const { t } = useTranslation();
   const { headerStyle, screenBottomStyle } = useSafeAreaPadding();
   const [pendingReports, setPendingReports] = useState<Report[]>([]);
-  const [allReports, setAllReports] = useState<Report[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
+  const [pendingReportsTotal, setPendingReportsTotal] = useState(0);
+  const [reportsTotal, setReportsTotal] = useState(0);
+  const [reportPage, setReportPage] = useState(1);
+  const [hasMoreReports, setHasMoreReports] = useState(false);
+  const [loadingReports, setLoadingReports] = useState(true);
+  const [users, setUsers] = useState<AdminUserListItem[]>([]);
+  const [usersTotal, setUsersTotal] = useState(0);
+  const [userPage, setUserPage] = useState(1);
+  const [hasMoreUsers, setHasMoreUsers] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [productsTotal, setProductsTotal] = useState(0);
   const [halalTotal, setHalalTotal] = useState(0);
@@ -65,7 +131,6 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [productFilter, setProductFilter] =
     useState<ProductListFilter>("all");
-  const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<
     "reports" | "users" | "products"
   >("reports");
@@ -77,12 +142,19 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   } | null>(null);
   const contentScrollRef = useRef<ScrollView>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reportCursors = useRef<(ReportPageCursor | undefined)[]>([undefined]);
+  const reportPageRef = useRef(1);
+  const userCursors = useRef<(UserPageCursor | undefined)[]>([undefined]);
+  const userPageRef = useRef(1);
   const productCursors = useRef<(ProductPageCursor | undefined)[]>([
     undefined,
   ]);
   const productPageRef = useRef(1);
   const productFilterRef = useRef<ProductListFilter>("all");
   const searchRequestId = useRef(0);
+  const bootstrappedRef = useRef(false);
+  const usersLoadedRef = useRef(false);
+  const productsLoadedRef = useRef(false);
 
   // Handle Android back button for modals
   useEffect(() => {
@@ -112,12 +184,18 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     return () => backHandler.remove();
   }, [viewingImages, editingProduct]);
 
-  useEffect(() => {
-    loadData();
-    return () => {
-      if (searchTimeout.current) clearTimeout(searchTimeout.current);
-    };
-  }, []);
+  const loadReportCounts = async () => {
+    const [pending, total] = await Promise.all([
+      getPendingReportsCount(),
+      getReportsCount(),
+    ]);
+    setPendingReportsTotal(pending);
+    setReportsTotal(total);
+  };
+
+  const loadUsersCount = async () => {
+    setUsersTotal(await getUsersCount());
+  };
 
   const loadProductCounts = async () => {
     const [total, halal] = await Promise.all([
@@ -126,6 +204,68 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     ]);
     setProductsTotal(total);
     setHalalTotal(halal);
+  };
+
+  const loadReportsPage = async (
+    page: number,
+    options?: { reset?: boolean }
+  ) => {
+    setLoadingReports(true);
+    try {
+      if (options?.reset) {
+        reportCursors.current = [undefined];
+      }
+      const cursor = reportCursors.current[page - 1];
+      const result = await getPendingReports(cursor, REPORTS_PAGE_SIZE);
+      if (result.reports.length === 0 && page > 1) {
+        setHasMoreReports(false);
+        return loadReportsPage(page - 1);
+      }
+      setPendingReports(result.reports);
+      setReportPage(page);
+      reportPageRef.current = page;
+      setHasMoreReports(result.hasMore);
+      const nextCursors = reportCursors.current.slice(0, page);
+      nextCursors[page] = result.lastDoc ?? undefined;
+      reportCursors.current = nextCursors;
+      contentScrollRef.current?.scrollTo({ y: 0, animated: false });
+    } catch (error) {
+      console.error("Error loading reports:", error);
+      Alert.alert(t("admin.error"), t("admin.failedToLoadData"));
+    } finally {
+      setLoadingReports(false);
+    }
+  };
+
+  const loadUsersPage = async (
+    page: number,
+    options?: { reset?: boolean }
+  ) => {
+    setLoadingUsers(true);
+    try {
+      if (options?.reset) {
+        userCursors.current = [undefined];
+      }
+      const cursor = userCursors.current[page - 1];
+      const result = await getUsers(cursor, USERS_PAGE_SIZE);
+      if (result.users.length === 0 && page > 1) {
+        setHasMoreUsers(false);
+        return loadUsersPage(page - 1);
+      }
+      setUsers(result.users);
+      setUserPage(page);
+      userPageRef.current = page;
+      setHasMoreUsers(result.hasMore);
+      const nextCursors = userCursors.current.slice(0, page);
+      nextCursors[page] = result.lastDoc ?? undefined;
+      userCursors.current = nextCursors;
+      contentScrollRef.current?.scrollTo({ y: 0, animated: false });
+    } catch (error) {
+      console.error("Error loading users:", error);
+      Alert.alert(t("admin.error"), t("admin.failedToLoadData"));
+    } finally {
+      setLoadingUsers(false);
+    }
   };
 
   const loadProductsPage = async (
@@ -163,42 +303,36 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     }
   };
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [pending, all, usersList] = await Promise.all([
-        getPendingReports(),
-        getAllReports(),
-        getUsers(),
-      ]);
-      setPendingReports(pending);
-      setAllReports(all);
-      setUsers(usersList);
-      await Promise.all([
-        loadProductsPage(1, { reset: true }),
-        loadProductCounts(),
-      ]);
-    } catch (error) {
-      console.error("Error loading data:", error);
-      Alert.alert(t("admin.error"), t("admin.failedToLoadData"));
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    if (bootstrappedRef.current) return;
+    bootstrappedRef.current = true;
+    Promise.all([
+      loadReportsPage(1, { reset: true }),
+      loadReportCounts(),
+      loadUsersCount(),
+      loadProductCounts(),
+    ]).catch((error) => {
+      console.error("Error bootstrapping admin data:", error);
+    });
+    return () => {
+      if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    };
+  }, []);
 
-  const getUsers = async () => {
-    try {
-      const usersRef = collection(db, "users");
-      const querySnapshot = await getDocs(usersRef);
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-    } catch (error) {
-      console.error("Error getting users:", error);
-      return [];
+  useEffect(() => {
+    if (selectedTab === "users" && !usersLoadedRef.current) {
+      usersLoadedRef.current = true;
+      loadUsersPage(1, { reset: true }).catch(() => {
+        usersLoadedRef.current = false;
+      });
     }
-  };
+    if (selectedTab === "products" && !productsLoadedRef.current) {
+      productsLoadedRef.current = true;
+      loadProductsPage(1, { reset: true }).catch(() => {
+        productsLoadedRef.current = false;
+      });
+    }
+  }, [selectedTab]);
 
   const handleApproveReport = async (reportId: string) => {
     try {
@@ -209,7 +343,11 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       );
       if (success) {
         Alert.alert(t("admin.success"), t("admin.reportApprovedSuccess"));
-        loadData(); // Refresh data
+        setPendingReports((current) =>
+          current.filter((report) => report.id !== reportId)
+        );
+        setPendingReportsTotal((count) => Math.max(0, count - 1));
+        await loadReportsPage(reportPageRef.current);
       } else {
         Alert.alert(t("admin.error"), t("admin.failedToApproveReport"));
       }
@@ -233,7 +371,11 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
             );
             if (success) {
               Alert.alert(t("admin.success"), t("admin.reportRejected"));
-              loadData(); // Refresh data
+              setPendingReports((current) =>
+                current.filter((report) => report.id !== reportId)
+              );
+              setPendingReportsTotal((count) => Math.max(0, count - 1));
+              await loadReportsPage(reportPageRef.current);
             } else {
               Alert.alert(t("admin.error"), t("admin.failedToRejectReport"));
             }
@@ -258,7 +400,13 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
             ? t("admin.adminStatusGranted")
             : t("admin.adminStatusRevoked")
         );
-        loadData(); // Refresh data
+        setUsers((current) =>
+          current.map((user) =>
+            user.id === userId
+              ? { ...user, isAdmin: !currentAdminStatus }
+              : user
+          )
+        );
       } else {
         Alert.alert(t("admin.error"), t("admin.failedToUpdateAdminStatus"));
       }
@@ -380,30 +528,6 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     }, 400);
   };
 
-  if (loading) {
-    return (
-      <View style={adminPanelStyles.container}>
-        <View style={[adminPanelStyles.header, headerStyle]}>
-          <View style={adminPanelStyles.headerContent}>
-            <TouchableOpacity
-              style={adminPanelStyles.backButton}
-              onPress={onBack}
-            >
-              <Text style={adminPanelStyles.backButtonText}>← Back</Text>
-            </TouchableOpacity>
-            <Text style={adminPanelStyles.headerTitle}>Admin Panel</Text>
-          </View>
-        </View>
-        <View style={adminPanelStyles.loadingContainer}>
-          <ActivityIndicator size="large" color="#22c55e" />
-          <Text style={adminPanelStyles.loadingText}>
-            Loading admin data...
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
   return (
     <View style={adminPanelStyles.container}>
       <View style={[adminPanelStyles.header, headerStyle]}>
@@ -432,7 +556,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               selectedTab === "reports" && adminPanelStyles.activeTabText,
             ]}
           >
-            Reports ({pendingReports.length})
+            Reports ({pendingReportsTotal})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -448,7 +572,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               selectedTab === "users" && adminPanelStyles.activeTabText,
             ]}
           >
-            Users ({users.length})
+            Users ({usersTotal})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -479,20 +603,26 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
             <View style={adminPanelStyles.statsContainer}>
               <View style={adminPanelStyles.statCard}>
                 <Text style={adminPanelStyles.statNumber}>
-                  {pendingReports.length}
+                  {pendingReportsTotal}
                 </Text>
                 <Text style={adminPanelStyles.statLabel}>Pending</Text>
               </View>
               <View style={adminPanelStyles.statCard}>
-                <Text style={adminPanelStyles.statNumber}>
-                  {allReports.length}
-                </Text>
+                <Text style={adminPanelStyles.statNumber}>{reportsTotal}</Text>
                 <Text style={adminPanelStyles.statLabel}>Total Reports</Text>
               </View>
             </View>
 
             <Text style={adminPanelStyles.sectionTitle}>Pending Reports</Text>
-            {pendingReports.length === 0 ? (
+            {loadingReports && (
+              <View style={adminPanelStyles.productsLoadingRow}>
+                <ActivityIndicator size="small" color={colors.primary[500]} />
+                <Text style={adminPanelStyles.productsLoadingText}>
+                  {t("common.loading")}
+                </Text>
+              </View>
+            )}
+            {pendingReports.length === 0 && !loadingReports ? (
               <View style={adminPanelStyles.emptyContainer}>
                 <Text style={adminPanelStyles.emptyIcon}>📋</Text>
                 <Text style={adminPanelStyles.emptyTitle}>
@@ -601,6 +731,15 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 </View>
               ))
             )}
+            <AdminPagination
+              page={reportPage}
+              hasMore={hasMoreReports}
+              loading={loadingReports}
+              total={pendingReportsTotal}
+              pageSize={REPORTS_PAGE_SIZE}
+              onPrev={() => loadReportsPage(reportPage - 1)}
+              onNext={() => loadReportsPage(reportPage + 1)}
+            />
           </>
         )}
 
@@ -609,7 +748,15 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
             <Text style={adminPanelStyles.sectionTitle}>
               {t("admin.userManagement")}
             </Text>
-            {users.length === 0 ? (
+            {loadingUsers && (
+              <View style={adminPanelStyles.productsLoadingRow}>
+                <ActivityIndicator size="small" color={colors.primary[500]} />
+                <Text style={adminPanelStyles.productsLoadingText}>
+                  {t("common.loading")}
+                </Text>
+              </View>
+            )}
+            {users.length === 0 && !loadingUsers ? (
               <View style={adminPanelStyles.emptyContainer}>
                 <Text style={adminPanelStyles.emptyIcon}>👥</Text>
                 <Text style={adminPanelStyles.emptyTitle}>
@@ -644,7 +791,9 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                         ? adminPanelStyles.revokeAdminButton
                         : adminPanelStyles.grantAdminButton
                     }
-                    onPress={() => handleToggleAdmin(user.id, user.isAdmin)}
+                    onPress={() =>
+                      handleToggleAdmin(user.id, user.isAdmin === true)
+                    }
                   >
                     <Text style={adminPanelStyles.grantAdminButtonText}>
                       {user.isAdmin
@@ -655,6 +804,15 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 </View>
               ))
             )}
+            <AdminPagination
+              page={userPage}
+              hasMore={hasMoreUsers}
+              loading={loadingUsers}
+              total={usersTotal}
+              pageSize={USERS_PAGE_SIZE}
+              onPrev={() => loadUsersPage(userPage - 1)}
+              onNext={() => loadUsersPage(userPage + 1)}
+            />
           </>
         )}
 
@@ -873,52 +1031,18 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               ))
             )}
 
-            {!isSearching &&
-              ((productFilter === "halal" ? halalTotal : productsTotal) >
-                PRODUCTS_PAGE_SIZE ||
-                hasMoreProducts ||
-                productPage > 1) && (
-              <View style={adminPanelStyles.paginationContainer}>
-                <TouchableOpacity
-                  style={[
-                    adminPanelStyles.paginationButton,
-                    productPage <= 1 &&
-                      adminPanelStyles.paginationButtonDisabled,
-                  ]}
-                  disabled={productPage <= 1 || loadingProducts}
-                  onPress={() => loadProductsPage(productPage - 1)}
-                >
-                  <Text style={adminPanelStyles.paginationButtonText}>
-                    {t("admin.previous")}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={adminPanelStyles.paginationInfo}>
-                  {t("admin.pageOf", {
-                    current: productPage,
-                    total: Math.max(
-                      productPage,
-                      Math.ceil(
-                        (productFilter === "halal"
-                          ? halalTotal
-                          : productsTotal) / PRODUCTS_PAGE_SIZE
-                      )
-                    ),
-                  })}
-                </Text>
-                <TouchableOpacity
-                  style={[
-                    adminPanelStyles.paginationButton,
-                    !hasMoreProducts &&
-                      adminPanelStyles.paginationButtonDisabled,
-                  ]}
-                  disabled={!hasMoreProducts || loadingProducts}
-                  onPress={() => loadProductsPage(productPage + 1)}
-                >
-                  <Text style={adminPanelStyles.paginationButtonText}>
-                    {t("admin.next")}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+            {!isSearching && (
+              <AdminPagination
+                page={productPage}
+                hasMore={hasMoreProducts}
+                loading={loadingProducts}
+                total={
+                  productFilter === "halal" ? halalTotal : productsTotal
+                }
+                pageSize={PRODUCTS_PAGE_SIZE}
+                onPrev={() => loadProductsPage(productPage - 1)}
+                onNext={() => loadProductsPage(productPage + 1)}
+              />
             )}
           </>
         )}
