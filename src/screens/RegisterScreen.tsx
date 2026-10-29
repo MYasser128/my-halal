@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
   ActivityIndicator,
   Image,
@@ -33,8 +32,12 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
   const [displayName, setDisplayName] = useState('');
   const [receiveUpdates, setReceiveUpdates] = useState(false);
   const [loading, setLoading] = useState(false);
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
+  const confirmPasswordRef = useRef<TextInput>(null);
 
   const handleRegister = async () => {
+    if (loading) return;
     if (!email || !password || !confirmPassword || !displayName) {
       Alert.alert(t('common.error'), t('auth.pleaseFillAllFields'));
       return;
@@ -71,7 +74,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
   return (
     <KeyboardAvoidingView 
       style={registerScreenStyles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior="padding"
     >
       <ScrollView
         contentContainerStyle={[
@@ -79,6 +82,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
           headerStyle,
           screenBottomStyle,
         ]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        automaticallyAdjustKeyboardInsets
       >
         <View style={registerScreenStyles.formContainer}>
           <View style={registerScreenStyles.header}>
@@ -86,7 +92,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
               <TouchableOpacity style={registerScreenStyles.backButton} onPress={onBackToHome}>
                 <Text style={registerScreenStyles.backButtonText}>← {t('common.back')}</Text>
               </TouchableOpacity>
-              <LanguageSwitcher style={registerScreenStyles.languageSwitcher} />
+              <LanguageSwitcher compact style={registerScreenStyles.languageSwitcher} />
             </View>
             <View style={registerScreenStyles.logo}>
               <Image 
@@ -109,12 +115,18 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
                 placeholder={t('auth.enterFullName')}
                 placeholderTextColor="#9CA3AF"
                 autoCapitalize="words"
+                autoComplete="name"
+                textContentType="name"
+                returnKeyType="next"
+                blurOnSubmit={false}
+                onSubmitEditing={() => emailRef.current?.focus()}
               />
             </View>
 
             <View style={registerScreenStyles.inputContainer}>
               <Text style={registerScreenStyles.label}>{t('auth.email')}</Text>
               <TextInput
+                ref={emailRef}
                 style={registerScreenStyles.input}
                 value={email}
                 onChangeText={setEmail}
@@ -123,12 +135,18 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                autoComplete="email"
+                textContentType="emailAddress"
+                returnKeyType="next"
+                blurOnSubmit={false}
+                onSubmitEditing={() => passwordRef.current?.focus()}
               />
             </View>
 
             <View style={registerScreenStyles.inputContainer}>
               <Text style={registerScreenStyles.label}>{t('auth.password')}</Text>
               <TextInput
+                ref={passwordRef}
                 style={registerScreenStyles.input}
                 value={password}
                 onChangeText={setPassword}
@@ -136,6 +154,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
                 placeholderTextColor="#9CA3AF"
                 secureTextEntry
                 autoCapitalize="none"
+                autoComplete="new-password"
+                textContentType="newPassword"
+                returnKeyType="next"
+                blurOnSubmit={false}
+                onSubmitEditing={() => confirmPasswordRef.current?.focus()}
               />
               
               {password.length > 0 && (
@@ -151,6 +174,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
             <View style={registerScreenStyles.inputContainer}>
               <Text style={registerScreenStyles.label}>{t('auth.confirmPassword')}</Text>
               <TextInput
+                ref={confirmPasswordRef}
                 style={registerScreenStyles.input}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -158,6 +182,10 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
                 placeholderTextColor="#9CA3AF"
                 secureTextEntry
                 autoCapitalize="none"
+                autoComplete="new-password"
+                textContentType="newPassword"
+                returnKeyType="go"
+                onSubmitEditing={handleRegister}
               />
               
               {confirmPassword.length > 0 && (

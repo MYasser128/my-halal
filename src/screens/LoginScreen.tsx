@@ -1,12 +1,11 @@
 import { User } from "firebase/auth";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
   Image,
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -35,12 +34,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const passwordRef = useRef<TextInput>(null);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
   const handleLogin = async () => {
+    if (loading) return;
     if (!email || !password) {
       Alert.alert(t("common.error"), t("auth.pleaseFillAllFields"));
       return;
@@ -79,7 +80,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   return (
     <KeyboardAvoidingView
       style={loginScreenStyles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior="padding"
     >
       <ScrollView
         contentContainerStyle={[
@@ -87,6 +88,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           headerStyle,
           screenBottomStyle,
         ]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        automaticallyAdjustKeyboardInsets
       >
         <View style={loginScreenStyles.formContainer}>
           <View style={loginScreenStyles.header}>
@@ -99,7 +103,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   ← {t("common.back")}
                 </Text>
               </TouchableOpacity>
-              <LanguageSwitcher style={loginScreenStyles.languageSwitcher} />
+              <LanguageSwitcher
+                compact
+                style={loginScreenStyles.languageSwitcher}
+              />
             </View>
             <View style={loginScreenStyles.logo}>
               <Image
@@ -126,6 +133,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                autoComplete="email"
+                textContentType="emailAddress"
+                returnKeyType="next"
+                blurOnSubmit={false}
+                onSubmitEditing={() => passwordRef.current?.focus()}
               />
             </View>
 
@@ -133,6 +145,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <Text style={loginScreenStyles.label}>{t("auth.password")}</Text>
               <View style={loginScreenStyles.passwordInputContainer}>
                 <TextInput
+                  ref={passwordRef}
                   style={loginScreenStyles.passwordInput}
                   value={password}
                   onChangeText={setPassword}
@@ -140,6 +153,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
+                  autoComplete="password"
+                  textContentType="password"
+                  returnKeyType="go"
+                  onSubmitEditing={handleLogin}
                 />
                 <TouchableOpacity
                   style={loginScreenStyles.passwordToggle}

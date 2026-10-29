@@ -16,19 +16,24 @@ export const registerScreenStyles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     justifyContent: "center",
-    padding: spacing[6],
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[4],
   },
 
   formContainer: {
     ...cardStyles.elevated,
-    padding: spacing[8],
-    marginHorizontal: spacing[2],
+    width: "100%",
+    maxWidth: 440,
+    alignSelf: "center",
+    padding: spacing[5],
+    overflow: "hidden",
   },
 
   // Header styles
   header: {
     alignItems: "center",
-    marginBottom: spacing[8],
+    marginBottom: spacing[5],
+    width: "100%",
   },
 
   headerTop: {
@@ -37,12 +42,15 @@ export const registerScreenStyles = StyleSheet.create({
     justifyContent: "space-between",
     width: "100%",
     marginBottom: spacing[4],
+    gap: spacing[2],
   },
 
   backButton: {
-    padding: spacing[2],
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[3],
     borderRadius: borderRadius.base,
     backgroundColor: colors.neutral[100],
+    flexShrink: 1,
   },
 
   backButtonText: {
@@ -52,17 +60,17 @@ export const registerScreenStyles = StyleSheet.create({
   },
 
   logo: {
-    width: 100,
-    height: 100,
+    width: 110,
+    height: 110,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: spacing[4],
+    marginBottom: spacing[3],
     overflow: "hidden",
   },
 
   logoImage: {
-    width: 300,
-    height: 300,
+    width: 110,
+    height: 110,
   },
 
   languageSwitcher: {
@@ -70,7 +78,7 @@ export const registerScreenStyles = StyleSheet.create({
   },
 
   title: {
-    ...textStyles.h1,
+    ...textStyles.h2,
     textAlign: "center",
     marginBottom: spacing[2],
     color: colors.text.primary,
@@ -106,8 +114,11 @@ export const registerScreenStyles = StyleSheet.create({
   // Button styles
   button: {
     ...buttonStyles.primary,
+    width: "100%",
+    minHeight: 48,
+    paddingHorizontal: spacing[4],
     marginTop: spacing[4],
-    marginBottom: spacing[6],
+    marginBottom: spacing[4],
   },
 
   buttonText: {
@@ -124,9 +135,12 @@ export const registerScreenStyles = StyleSheet.create({
 
   // Switch container
   switchContainer: {
-    ...layoutStyles.row,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
     justifyContent: "center",
-    marginTop: spacing[4],
+    marginTop: spacing[2],
+    width: "100%",
   },
 
   switchText: {
@@ -192,13 +206,14 @@ export const registerScreenStyles = StyleSheet.create({
 
   // Loading indicator
   loadingContainer: {
-    ...layoutStyles.center,
-    padding: spacing[4],
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   loadingText: {
-    ...textStyles.bodySecondary,
-    marginTop: spacing[2],
+    ...buttonStyles.primaryText,
+    marginLeft: spacing[2],
   },
 
   // Terms and conditions
