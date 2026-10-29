@@ -50,6 +50,11 @@ export const productDetailStyles = StyleSheet.create({
     padding: spacing[6],
   },
 
+  // Anchored banners overlay the screen edge and can be up to 90dp.
+  scrollContent: {
+    paddingBottom: 90 + spacing[4],
+  },
+
   // Product info card
   productCard: {
     ...cardStyles.elevated,
@@ -198,28 +203,15 @@ export const productDetailStyles = StyleSheet.create({
 
   // Action buttons
   actionButtons: {
-    flexDirection: "row",
     marginTop: spacing[6],
   },
 
   primaryButton: {
     ...buttonStyles.primary,
-    flex: 1,
-    marginRight: spacing[2],
   },
 
   primaryButtonText: {
     ...buttonStyles.primaryText,
-  },
-
-  secondaryButton: {
-    ...buttonStyles.secondary,
-    flex: 1,
-    marginLeft: spacing[2],
-  },
-
-  secondaryButtonText: {
-    ...buttonStyles.secondaryText,
   },
 
   // Loading states
@@ -289,5 +281,10 @@ export const productDetailStyles = StyleSheet.create({
     borderRadius: borderRadius.base,
     marginRight: spacing[3],
     backgroundColor: colors.background.tertiary,
+  },
+
+  bannerContainer: {
+    alignItems: "center",
+    backgroundColor: colors.background.secondary,
   },
 });

@@ -10,11 +10,23 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import {
+  BannerAd,
+  BannerAdSize,
+  TestIds,
+} from "react-native-google-mobile-ads";
 import { ImageViewer } from "../components/ImageViewer";
 import { ProductImage } from "../components/ProductImage";
 import { db } from "../firebase";
 import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
 import { productDetailStyles } from "../styles/ProductDetail.styles";
+
+const adUnitId = __DEV__
+  ? TestIds.ADAPTIVE_BANNER
+  : Platform.select({
+      android: "ca-app-pub-4190475427615963/9140513175",
+      ios: "ca-app-pub-4190475427615963/8408963930",
+    }) || TestIds.ADAPTIVE_BANNER;
 
 interface ProductDetailScreenProps {
   barcode: string;
@@ -49,7 +61,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   onScanAgain,
 }) => {
   const { t } = useTranslation();
-  const { headerStyle, screenBottomStyle } = useSafeAreaPadding();
+  const { insets, headerStyle, screenBottomStyle } = useSafeAreaPadding();
   const [product, setProduct] = useState<ProductData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -242,7 +254,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
 
       <ScrollView
         style={productDetailStyles.content}
-        contentContainerStyle={screenBottomStyle}
+        contentContainerStyle={productDetailStyles.scrollContent}
       >
         {/* Product Images */}
         {product.images && product.images.length > 0 && (
@@ -396,7 +408,6 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
           </View>
         )}
 
-        {/* Action Buttons */}
         <View style={productDetailStyles.actionButtons}>
           <TouchableOpacity
             style={productDetailStyles.primaryButton}
@@ -406,16 +417,20 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
               {t("scanner.scanAgain")}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={productDetailStyles.secondaryButton}
-            onPress={onBack}
-          >
-            <Text style={productDetailStyles.secondaryButtonText}>
-              {t("common.back")}
-            </Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <View
+        style={[
+          productDetailStyles.bannerContainer,
+          { paddingBottom: insets.bottom },
+        ]}
+      >
+        <BannerAd
+          unitId={adUnitId}
+          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+        />
+      </View>
 
       <ImageViewer
         visible={viewingImages !== null}
