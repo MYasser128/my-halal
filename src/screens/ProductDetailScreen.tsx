@@ -1,8 +1,6 @@
-import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   BackHandler,
   Platform,
   ScrollView,
@@ -17,7 +15,6 @@ import {
 } from "react-native-google-mobile-ads";
 import { ImageViewer } from "../components/ImageViewer";
 import { ProductImage } from "../components/ProductImage";
-import { db } from "../firebase";
 import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
 import { productDetailStyles } from "../styles/ProductDetail.styles";
 
@@ -28,13 +25,7 @@ const adUnitId = __DEV__
       ios: "ca-app-pub-4190475427615963/8408963930",
     }) || TestIds.ADAPTIVE_BANNER;
 
-interface ProductDetailScreenProps {
-  barcode: string;
-  onBack: () => void;
-  onScanAgain: () => void;
-}
-
-interface ProductData {
+export interface ProductData {
   id: string;
   name: string;
   barcode: string;
@@ -55,16 +46,19 @@ interface ProductData {
   lastUpdated?: Date;
 }
 
+interface ProductDetailScreenProps {
+  product: ProductData;
+  onBack: () => void;
+  onScanAgain: () => void;
+}
+
 export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
-  barcode,
+  product,
   onBack,
   onScanAgain,
 }) => {
   const { t } = useTranslation();
-  const { insets, headerStyle, screenBottomStyle } = useSafeAreaPadding();
-  const [product, setProduct] = useState<ProductData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { insets, headerStyle } = useSafeAreaPadding();
   const [viewingImages, setViewingImages] = useState<{
     images: string[];
     currentIndex: number;
@@ -92,39 +86,6 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
 
     return () => backHandler.remove();
   }, [viewingImages]);
-
-  useEffect(() => {
-    loadProduct();
-  }, [barcode]);
-
-  const loadProduct = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Clean the barcode data to make it a valid document ID
-      const cleanBarcode = barcode.replace(/[^a-zA-Z0-9_-]/g, "_");
-
-      // Look for product in Firestore
-      const docRef = doc(db, "products", cleanBarcode);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const productData = docSnap.data() as ProductData;
-        setProduct({
-          ...productData,
-          id: docSnap.id,
-        });
-      } else {
-        setError(t("scanner.productNotFound"));
-      }
-    } catch (error) {
-      console.error("Error loading product:", error);
-      setError(t("scanner.somethingWentWrong"));
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -162,77 +123,6 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
       return "N/A";
     }
   };
-
-  if (loading) {
-    return (
-      <View style={productDetailStyles.container}>
-        <View style={[productDetailStyles.header, headerStyle]}>
-          <View style={productDetailStyles.headerContent}>
-            <TouchableOpacity
-              style={productDetailStyles.backButton}
-              onPress={onBack}
-            >
-              <Text style={productDetailStyles.backButtonText}>
-                ← {t("common.back")}
-              </Text>
-            </TouchableOpacity>
-            <Text style={productDetailStyles.headerTitle}>
-              {t("product.productName")}
-            </Text>
-          </View>
-        </View>
-        <View style={productDetailStyles.loadingContainer}>
-          <ActivityIndicator size="large" color="#22c55e" />
-          <Text style={productDetailStyles.loadingText}>
-            {t("common.loading")}
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (error || !product) {
-    return (
-      <View style={productDetailStyles.container}>
-        <View style={[productDetailStyles.header, headerStyle]}>
-          <View style={productDetailStyles.headerContent}>
-            <TouchableOpacity
-              style={productDetailStyles.backButton}
-              onPress={onBack}
-            >
-              <Text style={productDetailStyles.backButtonText}>
-                ← {t("common.back")}
-              </Text>
-            </TouchableOpacity>
-            <Text style={productDetailStyles.headerTitle}>
-              {t("product.productName")}
-            </Text>
-          </View>
-        </View>
-        <View style={[productDetailStyles.content, screenBottomStyle]}>
-          <View style={productDetailStyles.emptyContainer}>
-            <Text style={productDetailStyles.emptyIcon}>❌</Text>
-            <Text style={productDetailStyles.emptyTitle}>
-              {t("scanner.productNotFound")}
-            </Text>
-            <Text style={productDetailStyles.emptyText}>
-              {t("scanner.productUnknownDescription")}
-            </Text>
-            <View style={productDetailStyles.actionButtons}>
-              <TouchableOpacity
-                style={productDetailStyles.primaryButton}
-                onPress={onScanAgain}
-              >
-                <Text style={productDetailStyles.primaryButtonText}>
-                  {t("scanner.scanAgain")}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </View>
-    );
-  }
 
   return (
     <View style={productDetailStyles.container}>

@@ -6,7 +6,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
 import { scannerScreenStyles } from "../styles/ScannerScreen.styles";
-import { ProductDetailScreen } from "./ProductDetailScreen";
+import { ProductData, ProductDetailScreen } from "./ProductDetailScreen";
 import { ProductCreationScreen } from "./ProductCreationScreen";
 import { AppUser } from "../services/auth";
 
@@ -23,6 +23,7 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [barcodeData, setBarcodeData] = useState<string | null>(null);
+  const [scannedProduct, setScannedProduct] = useState<ProductData | null>(null);
   const [productState, setProductState] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [currentView, setCurrentView] = useState<'scanner' | 'productDetail' | 'productCreation' | 'productNotFound'>('scanner');
@@ -131,12 +132,17 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        const product = docSnap.data();
+        const product = {
+          id: docSnap.id,
+          ...docSnap.data(),
+        } as ProductData;
+        setScannedProduct(product);
         setProductState(product.halalStates?.default || 'haram');
         setNotFound(false);
         // Navigate to product detail screen
         setCurrentView('productDetail');
       } else {
+        setScannedProduct(null);
         setNotFound(true);
         setProductState(null);
         // Navigate to product not found screen first
@@ -170,12 +176,17 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        const product = docSnap.data();
+        const product = {
+          id: docSnap.id,
+          ...docSnap.data(),
+        } as ProductData;
+        setScannedProduct(product);
         setProductState(product.halalStates?.default || 'haram');
         setNotFound(false);
         // Navigate to product detail screen
         setCurrentView('productDetail');
       } else {
+        setScannedProduct(null);
         setNotFound(true);
         setProductState(null);
         // Navigate to product not found screen first
@@ -192,6 +203,7 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
     setCurrentView('scanner');
     setScanned(false);
     setBarcodeData(null);
+    setScannedProduct(null);
     setProductState(null);
     setNotFound(false);
     setManualInputMode(false);
@@ -203,6 +215,7 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
     setCurrentView('scanner');
     setScanned(false);
     setBarcodeData(null);
+    setScannedProduct(null);
     setProductState(null);
     setNotFound(false);
     setManualInputMode(false);
@@ -252,10 +265,10 @@ export default function ScannerScreen({ onBack, user, onNavigateToLogin }: Scann
   };
 
   // Render different views based on current state
-  if (currentView === 'productDetail' && barcodeData) {
+  if (currentView === 'productDetail' && scannedProduct) {
     return (
       <ProductDetailScreen
-        barcode={barcodeData}
+        product={scannedProduct}
         onBack={handleBackToScanner}
         onScanAgain={handleScanAgain}
       />
