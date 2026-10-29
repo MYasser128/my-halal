@@ -7,9 +7,8 @@ import {
   Image,
   Platform,
 } from "react-native";
-import { User } from "firebase/auth";
 import { useTranslation } from "react-i18next";
-import { useAdmin } from "../hooks/useAdmin";
+import { AppUser, userIsAdmin } from "../services/auth";
 import { BurgerMenu, BurgerMenuProvider } from "../components/BurgerMenu";
 import { isRTL } from "../i18n";
 import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
@@ -29,7 +28,7 @@ const adUnitId = __DEV__
     }) || TestIds.ADAPTIVE_BANNER;
 
 interface HomeScreenProps {
-  user: User | null;
+  user: AppUser | null;
   onLogout: () => void;
   onNavigateToScanner: () => void;
   onNavigateToAdmin: () => void;
@@ -44,7 +43,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigateToLogin,
 }) => {
   const { t, i18n } = useTranslation();
-  const { isAdmin, loading } = useAdmin(user);
+  const isAdmin = userIsAdmin(user);
   const isCurrentRTL = isRTL(i18n.language);
   const { insets, headerStyle, screenBottomStyle } = useSafeAreaPadding();
 

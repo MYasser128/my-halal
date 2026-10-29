@@ -5,15 +5,14 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useSafeAreaPadding } from '../hooks/useSafeAreaPadding';
 import { productCreationStyles } from '../styles/ProductCreation.styles';
-import { isAdmin } from '../services/auth';
-import { User } from 'firebase/auth';
+import { AppUser, userIsAdmin } from '../services/auth';
 import { ImageUpload } from '../components/ImageUpload';
 
 interface ProductCreationScreenProps {
   barcode: string;
   onBack: () => void;
   onSuccess: () => void;
-  user: User | null;
+  user: AppUser | null;
   onNavigateToLogin?: () => void;
 }
 
@@ -34,19 +33,8 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
   
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [images, setImages] = useState<string[]>([]);
-
-  // Check admin status on component mount
-  React.useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (user) {
-        const adminStatus = await isAdmin(user);
-        setIsUserAdmin(adminStatus);
-      }
-    };
-    checkAdminStatus();
-  }, [user]);
+  const isUserAdmin = userIsAdmin(user);
 
   // Show anonymous reporting notice for guest users
   const isAnonymous = !user;
@@ -78,10 +66,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
       const cleanBarcode = barcode.replace(/[^a-zA-Z0-9_-]/g, '_');
       
       if (user) {
-        // Check if user is admin
-        const userIsAdmin = await isAdmin(user);
-        
-        if (userIsAdmin) {
+        if (isUserAdmin) {
           // Admin: Add directly to products collection with same structure as approveReport
           const productData = {
             barcode: barcode,

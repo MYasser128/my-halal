@@ -1,5 +1,4 @@
 import { StatusBar } from "expo-status-bar";
-import { User } from "firebase/auth";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -19,13 +18,19 @@ import { HomeScreen } from "./src/screens/HomeScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
 import { RegisterScreen } from "./src/screens/RegisterScreen";
 import ScannerScreen from "./src/screens/ScannerScreen";
-import { logout, onAuthStateChange } from "./src/services/auth";
+import {
+  AppUser,
+  clearUserProfileCache,
+  ensureUserProfile,
+  logout,
+  onAuthStateChange,
+} from "./src/services/auth";
 
 type AuthScreen = "login" | "register";
 type AppScreen = "home" | "scanner" | "admin" | "login" | "register";
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [authScreen, setAuthScreen] = useState<AuthScreen>("login");
   const [currentScreen, setCurrentScreen] = useState<AppScreen>("home");
@@ -46,16 +51,12 @@ function App() {
         console.error("Mobile Ads initialization failed:", error);
       });
 
-    const unsubscribe = onAuthStateChange(async (user) => {
-      if (user) {
-        // Create/update user profile and get the user with proper display name
-        const { createUserProfile, getUserProfile } = await import(
-          "./src/services/auth"
-        );
-        await createUserProfile(user);
-        const userWithProfile = await getUserProfile(user);
+    const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+      if (firebaseUser) {
+        const userWithProfile = await ensureUserProfile(firebaseUser);
         setUser(userWithProfile);
       } else {
+        clearUserProfileCache();
         setUser(null);
       }
       setLoading(false);
@@ -112,9 +113,8 @@ function App() {
     return () => backHandler.remove();
   }, [currentScreen, navigationHistory]);
 
-  const handleLogin = async (user: User) => {
-    setUser(user);
-    // Note: User profile is already created and updated in the login/register screens
+  const handleLogin = async (loggedInUser: AppUser) => {
+    setUser(loggedInUser);
   };
 
   const handleLogout = async () => {

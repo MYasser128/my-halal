@@ -1,4 +1,3 @@
-import { User } from "firebase/auth";
 import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -14,11 +13,11 @@ import {
 } from "react-native";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
 import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
-import { createUserProfile, getUserProfile, login } from "../services/auth";
+import { AppUser, ensureUserProfile, login } from "../services/auth";
 import { loginScreenStyles } from "../styles/LoginScreen.styles";
 
 interface LoginScreenProps {
-  onLogin: (user: User) => void;
+  onLogin: (user: AppUser) => void;
   onSwitchToRegister: () => void;
   onBackToHome: () => void;
 }
@@ -50,10 +49,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     setLoading(true);
     try {
       const userCredential = await login(email, password);
-      await createUserProfile(userCredential.user);
-
-      // Get the user profile with actual display name from Firestore
-      const userWithProfile = await getUserProfile(userCredential.user);
+      const userWithProfile = await ensureUserProfile(userCredential.user);
       onLogin(userWithProfile);
       onBackToHome();
     } catch (error: any) {

@@ -11,14 +11,13 @@ import {
   Image,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { register, createUserProfile, getUserProfile } from '../services/auth';
-import { User } from 'firebase/auth';
+import { AppUser, ensureUserProfile, register, setPendingProfileExtras } from '../services/auth';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { useSafeAreaPadding } from '../hooks/useSafeAreaPadding';
 import { registerScreenStyles } from '../styles/RegisterScreen.styles';
 
 interface RegisterScreenProps {
-  onRegister: (user: User) => void;
+  onRegister: (user: AppUser) => void;
   onSwitchToLogin: () => void;
   onBackToHome: () => void;
 }
@@ -55,11 +54,12 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
 
     setLoading(true);
     try {
+      setPendingProfileExtras({ displayName, receiveUpdates });
       const userCredential = await register(email, password);
-      await createUserProfile(userCredential.user, { displayName, receiveUpdates });
-      
-      // Get the user profile with actual display name from Firestore
-      const userWithProfile = await getUserProfile(userCredential.user);
+      const userWithProfile = await ensureUserProfile(userCredential.user, {
+        displayName,
+        receiveUpdates,
+      });
       onRegister(userWithProfile);
     } catch (error: any) {
       Alert.alert(t('auth.registrationFailed'), error.message || t('auth.anErrorOccurred'));

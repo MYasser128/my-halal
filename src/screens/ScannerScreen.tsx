@@ -8,10 +8,11 @@ import { useSafeAreaPadding } from "../hooks/useSafeAreaPadding";
 import { scannerScreenStyles } from "../styles/ScannerScreen.styles";
 import { ProductDetailScreen } from "./ProductDetailScreen";
 import { ProductCreationScreen } from "./ProductCreationScreen";
+import { AppUser } from "../services/auth";
 
 interface ScannerScreenProps {
   onBack: () => void;
-  user: any | null;
+  user: AppUser | null;
   onNavigateToLogin?: () => void;
 }
 

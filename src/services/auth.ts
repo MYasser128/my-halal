@@ -33,22 +33,115 @@ export interface AdminUserListItem {
   isAdmin?: boolean;
 }
 
+export type AppUser = User & {
+  isAdmin: boolean;
+  receiveUpdates: boolean;
+};
+
+export type ProfileExtras = {
+  displayName?: string;
+  receiveUpdates?: boolean;
+};
+
+let cachedProfile: AppUser | null = null;
+let inFlightProfile: { uid: string; promise: Promise<AppUser> } | null = null;
+let pendingProfileExtras: ProfileExtras | undefined;
+
+export const userIsAdmin = (user: User | AppUser | null | undefined): boolean =>
+  Boolean(user && (user as AppUser).isAdmin === true);
+
+export const clearUserProfileCache = () => {
+  cachedProfile = null;
+  inFlightProfile = null;
+  pendingProfileExtras = undefined;
+};
+
+export const setPendingProfileExtras = (extras: ProfileExtras) => {
+  pendingProfileExtras = extras;
+};
+
+const toAppUser = (user: User, data?: DocumentData | null): AppUser =>
+  ({
+    ...user,
+    displayName:
+      data?.displayName ||
+      user.displayName ||
+      user.email?.split("@")[0] ||
+      "User",
+    email: data?.email || user.email || "",
+    isAdmin: data?.isAdmin === true,
+    receiveUpdates: data?.receiveUpdates === true,
+  }) as AppUser;
+
+const loadUserProfile = async (
+  user: User,
+  additionalData: ProfileExtras
+): Promise<AppUser> => {
+  const extras = { ...pendingProfileExtras, ...additionalData };
+  pendingProfileExtras = undefined;
+
+  try {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      const payload = {
+        displayName: extras.displayName || user.displayName || "",
+        email: user.email || "",
+        createdAt: new Date(),
+        isAdmin: false,
+        lastLoginAt: new Date(),
+        receiveUpdates: extras.receiveUpdates === true,
+      };
+      await setDoc(userRef, payload);
+      return toAppUser(user, payload);
+    }
+
+    await updateDoc(userRef, {
+      lastLoginAt: new Date(),
+    });
+    return toAppUser(user, userSnap.data());
+  } catch (error) {
+    console.error("Error loading user profile:", error);
+    return toAppUser(user, extras);
+  }
+};
+
+export const ensureUserProfile = async (
+  user: User,
+  additionalData: ProfileExtras = {}
+): Promise<AppUser> => {
+  if (
+    additionalData.displayName !== undefined ||
+    additionalData.receiveUpdates !== undefined
+  ) {
+    pendingProfileExtras = { ...pendingProfileExtras, ...additionalData };
+  }
+  if (cachedProfile?.uid === user.uid) {
+    pendingProfileExtras = undefined;
+    return cachedProfile;
+  }
+  if (inFlightProfile?.uid === user.uid) {
+    return inFlightProfile.promise;
+  }
+
+  const promise = loadUserProfile(user, additionalData);
+  inFlightProfile = { uid: user.uid, promise };
+  try {
+    cachedProfile = await promise;
+    return cachedProfile;
+  } finally {
+    if (inFlightProfile?.promise === promise) {
+      inFlightProfile = null;
+    }
+  }
+};
+
 export const register = (email: string, pass: string) => createUserWithEmailAndPassword(auth, email, pass);
 export const login = (email: string, pass: string) => signInWithEmailAndPassword(auth, email, pass);
-export const logout = () => signOut(auth);
-
-// Admin functionality - handle admin status in Firestore instead of custom claims
-export const isAdmin = async (user: User | null): Promise<boolean> => {
-  if (!user) return false;
-  
-  try {
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    const userData = userDoc.data();
-    return userData?.isAdmin === true;
-  } catch (error) {
-    console.error('Error checking admin status:', error);
-    return false;
-  }
+export const logout = async () => {
+  clearUserProfileCache();
+  return signOut(auth);
 };
 
 export const setAdminStatus = async (userId: string, isAdmin: boolean): Promise<boolean> => {
@@ -61,65 +154,6 @@ export const setAdminStatus = async (userId: string, isAdmin: boolean): Promise<
   } catch (error) {
     console.error('Error setting admin status:', error);
     return false;
-  }
-};
-
-export const createUserProfile = async (user: User, additionalData: any = {}) => {
-  try {
-    const userRef = doc(db, 'users', user.uid);
-    const userSnap = await getDoc(userRef);
-    
-    if (!userSnap.exists()) {
-      await setDoc(userRef, {
-        displayName: user.displayName || additionalData.displayName || '',
-        email: user.email || '',
-        createdAt: new Date(),
-        isAdmin: false,
-        lastLoginAt: new Date(),
-        receiveUpdates: additionalData.receiveUpdates || false,
-        ...additionalData
-      });
-    } else {
-      // Update last login time for existing users
-      await updateDoc(userRef, {
-        lastLoginAt: new Date()
-      });
-    }
-  } catch (error) {
-    console.error('Error creating user profile:', error);
-  }
-};
-
-// Get user profile data from Firestore
-export const getUserProfile = async (user: User) => {
-  try {
-    const userRef = doc(db, 'users', user.uid);
-    const userSnap = await getDoc(userRef);
-    
-    if (userSnap.exists()) {
-      const userData = userSnap.data();
-      return {
-        ...user,
-        displayName: userData.displayName || user.displayName || user.email?.split('@')[0] || 'User',
-        email: userData.email || user.email || '',
-        isAdmin: userData.isAdmin || false,
-        receiveUpdates: userData.receiveUpdates || false,
-      };
-    }
-    
-    // If no profile exists, return user with fallback display name
-    return {
-      ...user,
-      displayName: user.displayName || user.email?.split('@')[0] || 'User',
-      receiveUpdates: false,
-    };
-  } catch (error) {
-    console.error('Error getting user profile:', error);
-    return {
-      ...user,
-      displayName: user.displayName || user.email?.split('@')[0] || 'User',
-      receiveUpdates: false,
-    };
   }
 };
 
