@@ -11,7 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { AppUser, ensureUserProfile, register, setPendingProfileExtras } from '../services/auth';
+import { AppUser, ensureUserProfile, login, register, setPendingProfileExtras } from '../services/auth';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { useSafeAreaPadding } from '../hooks/useSafeAreaPadding';
 import { registerScreenStyles } from '../styles/RegisterScreen.styles';
@@ -34,10 +34,13 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmPasswordRef = useRef<TextInput>(null);
+  const submittingRef = useRef(false);
 
   const handleRegister = async () => {
-    if (loading) return;
-    if (!email || !password || !confirmPassword || !displayName) {
+    if (submittingRef.current || loading) return;
+    const trimmedEmail = email.trim();
+    const trimmedName = displayName.trim();
+    if (!trimmedEmail || !password || !confirmPassword || !trimmedName) {
       Alert.alert(t('common.error'), t('auth.pleaseFillAllFields'));
       return;
     }
@@ -52,18 +55,38 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
       return;
     }
 
+    submittingRef.current = true;
     setLoading(true);
     try {
-      setPendingProfileExtras({ displayName, receiveUpdates });
-      const userCredential = await register(email, password);
-      const userWithProfile = await ensureUserProfile(userCredential.user, {
-        displayName,
+      setPendingProfileExtras({ displayName: trimmedName, receiveUpdates });
+      let credential;
+      try {
+        credential = await register(trimmedEmail, password);
+      } catch (error: any) {
+        if (error?.code !== 'auth/email-already-in-use') {
+          throw error;
+        }
+        // First tap often created the account; second tap should finish sign-in.
+        credential = await login(trimmedEmail, password);
+      }
+
+      const userWithProfile = await ensureUserProfile(credential.user, {
+        displayName: trimmedName,
         receiveUpdates,
       });
       onRegister(userWithProfile);
+      onBackToHome();
     } catch (error: any) {
-      Alert.alert(t('auth.registrationFailed'), error.message || t('auth.anErrorOccurred'));
+      if (error?.code === 'auth/email-already-in-use' || error?.code === 'auth/wrong-password' || error?.code === 'auth/invalid-credential') {
+        Alert.alert(t('auth.alreadyHaveAccount'), t('auth.emailAlreadyInUse'), [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('auth.signIn'), onPress: onSwitchToLogin },
+        ]);
+      } else {
+        Alert.alert(t('auth.registrationFailed'), t('auth.anErrorOccurred'));
+      }
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   };

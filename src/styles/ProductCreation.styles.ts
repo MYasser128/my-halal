@@ -8,12 +8,12 @@ export const productCreationStyles = StyleSheet.create({
     backgroundColor: colors.background.secondary,
   },
   
-  // Header styles
+  // Header styles — paddingTop comes from useSafeAreaPadding
   header: {
     backgroundColor: colors.primary[500],
-    paddingTop: spacing[12],
-    paddingBottom: spacing[6],
-    paddingHorizontal: spacing[6],
+    paddingTop: 0,
+    paddingBottom: spacing[4],
+    paddingHorizontal: spacing[4],
     borderBottomLeftRadius: borderRadius['2xl'],
     borderBottomRightRadius: borderRadius['2xl'],
     ...shadows.lg,
@@ -23,38 +23,43 @@ export const productCreationStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    minHeight: 44,
   },
   
   headerTitle: {
-    ...textStyles.h2,
+    ...textStyles.h3,
     color: colors.text.inverse,
     flex: 1,
+    flexShrink: 1,
+    fontSize: typography.fontSize.xl,
+    lineHeight: typography.fontSize.xl * typography.lineHeight.normal,
   },
   
   backButton: {
-    padding: spacing[3],
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[3],
     borderRadius: borderRadius.full,
-    marginRight: spacing[4],
+    marginRight: spacing[2],
+    flexShrink: 0,
   },
   
   backButtonText: {
     ...textStyles.button,
     color: colors.text.inverse,
     fontSize: typography.fontSize.base,
-    
   },
   
   // Content styles
   content: {
     flex: 1,
-    padding: spacing[6],
+    padding: spacing[4],
   },
   
   // Form container
   formContainer: {
     ...cardStyles.elevated,
-    padding: spacing[6],
-    marginBottom: spacing[6],
+    padding: spacing[4],
+    marginBottom: spacing[4],
   },
   
   formTitle: {
@@ -125,7 +130,7 @@ export const productCreationStyles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   
-  // Status selection
+  // Status selection — icon above label so narrow screens don't break words
   statusSection: {
     marginBottom: spacing[6],
   },
@@ -133,25 +138,28 @@ export const productCreationStyles = StyleSheet.create({
   statusTitle: {
     ...textStyles.h4,
     color: colors.text.primary,
-    marginBottom: spacing[4],
+    marginBottom: spacing[3],
+    fontSize: typography.fontSize.lg,
   },
   
   statusOptions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
+    alignItems: 'stretch',
+    gap: spacing[2],
   },
   
   statusOption: {
     flex: 1,
-    marginHorizontal: spacing[1],
-    marginBottom: spacing[2],
-    padding: spacing[3],
+    flexBasis: 0,
+    minWidth: 0,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[1],
     borderRadius: borderRadius.base,
     borderWidth: 2,
     borderColor: colors.neutral[300],
     alignItems: 'center',
-    minWidth: 100,
+    justifyContent: 'center',
+    gap: spacing[1],
   },
   
   statusOptionSelected: {
@@ -159,10 +167,19 @@ export const productCreationStyles = StyleSheet.create({
     backgroundColor: colors.primary[50],
   },
   
+  statusOptionIcon: {
+    fontSize: typography.fontSize.lg,
+    lineHeight: typography.fontSize.lg * 1.3,
+    textAlign: 'center',
+  },
+  
   statusOptionText: {
-    ...textStyles.body,
+    fontSize: typography.fontSize.sm,
+    lineHeight: typography.fontSize.sm * typography.lineHeight.normal,
     color: colors.text.secondary,
     fontWeight: typography.fontWeight.medium,
+    textAlign: 'center',
+    width: '100%',
   },
   
   statusOptionTextSelected: {
@@ -171,40 +188,51 @@ export const productCreationStyles = StyleSheet.create({
   },
   
   
-  // Action buttons
+  // Action buttons — stacked full-width so long labels don't collapse on small screens
   actionButtons: {
-    flexDirection: 'row',
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    width: '100%',
     marginTop: spacing[6],
+    gap: spacing[3],
   },
   
   submitButton: {
     ...buttonStyles.primary,
-    flex: 1,
-    marginRight: spacing[2],
+    width: '100%',
+    minHeight: 48,
+    alignSelf: 'stretch',
   },
   
   submitButtonText: {
     ...buttonStyles.primaryText,
+    textAlign: 'center',
+    flexShrink: 1,
   },
   
   submitButtonDisabled: {
     ...buttonStyles.disabled,
-    flex: 1,
-    marginRight: spacing[2],
+    width: '100%',
+    minHeight: 48,
+    alignSelf: 'stretch',
   },
   
   submitButtonDisabledText: {
     ...buttonStyles.disabledText,
+    textAlign: 'center',
   },
   
   cancelButton: {
     ...buttonStyles.secondary,
-    flex: 1,
-    marginLeft: spacing[2],
+    width: '100%',
+    minHeight: 48,
+    alignSelf: 'stretch',
   },
   
   cancelButtonText: {
     ...buttonStyles.secondaryText,
+    textAlign: 'center',
+    flexShrink: 1,
   },
   
   // Loading states

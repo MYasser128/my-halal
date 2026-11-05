@@ -164,21 +164,20 @@ export const approveReport = async (
 
     const reportData = reportDoc.data() as Report;
 
-    // Update report status
-    await updateDoc(reportRef, {
-      status: "approved",
-      reviewedBy: adminId,
-      notes: notes || "",
-      updatedAt: serverTimestamp(),
-    });
-
-    // Update or create product
+    // Create/update product first so a failed write does not leave the report approved
     const barcode = reportData.barcode || `manual-${reportId}`;
-    const productRef = doc(db, "products", barcode);
+    const productId = barcode.replace(/[^a-zA-Z0-9_-]/g, "_");
+    const productRef = doc(db, "products", productId);
+
+    // Firestore rejects undefined field values — omit optional fields when empty
+    const imageFields =
+      reportData.images && reportData.images.length > 0
+        ? { images: reportData.images }
+        : {};
 
     const productData: Partial<Product> = {
       barcode,
-      name: reportData.name || undefined,
+      ...(reportData.name ? { name: reportData.name } : {}),
       lastUpdated: serverTimestamp(),
       createdByAdmin: adminId,
       verificationHistory: [
@@ -192,11 +191,17 @@ export const approveReport = async (
       halalStates: {
         default: reportData.suggestedState || "unknown",
       },
-      images: reportData.images || undefined,
+      ...imageFields,
     };
 
-    // Use set with merge to create or update
     await setDoc(productRef, productData, { merge: true });
+
+    await updateDoc(reportRef, {
+      status: "approved",
+      reviewedBy: adminId,
+      notes: notes || "",
+      updatedAt: serverTimestamp(),
+    });
 
     return true;
   } catch (error) {

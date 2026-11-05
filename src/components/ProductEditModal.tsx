@@ -84,7 +84,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
       halalStates: {
         default: formData.halalStatus,
       },
-      images: images.length > 0 ? images : undefined,
+      ...(images.length > 0 ? { images } : {}),
       lastUpdated: new Date(),
     };
 

@@ -64,6 +64,8 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
     try {
       // Clean the barcode data to make it a valid document ID
       const cleanBarcode = barcode.replace(/[^a-zA-Z0-9_-]/g, '_');
+      // Firestore rejects undefined field values — omit images when empty
+      const imageFields = images.length > 0 ? { images } : {};
       
       if (user) {
         if (isUserAdmin) {
@@ -82,7 +84,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
             halalStates: {
               default: formData.halalStatus,
             },
-            images: images.length > 0 ? images : undefined,
+            ...imageFields,
             createdAt: new Date(),
             status: 'verified',
           };
@@ -109,7 +111,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
             reporterEmail: user.email || '',
             status: 'pending',
             notes: 'Product creation request',
-            images: images.length > 0 ? images : undefined,
+            ...imageFields,
             createdAt: new Date(),
             updatedAt: new Date(),
           };
@@ -136,7 +138,7 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
           suggestedState: formData.halalStatus,
           status: 'pending',
           notes: 'Product creation request from anonymous user',
-          images: images.length > 0 ? images : undefined,
+          ...imageFields,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
@@ -178,7 +180,14 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
           <TouchableOpacity style={productCreationStyles.backButton} onPress={onBack}>
             <Text style={productCreationStyles.backButtonText}>← {t('common.back')}</Text>
           </TouchableOpacity>
-          <Text style={productCreationStyles.headerTitle}>{t('productCreation.addNewProduct')}</Text>
+          <Text
+            style={productCreationStyles.headerTitle}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
+            {t('productCreation.addNewProduct')}
+          </Text>
         </View>
       </View>
 
@@ -261,50 +270,37 @@ export const ProductCreationScreen: React.FC<ProductCreationScreenProps> = ({
           <View style={productCreationStyles.statusSection}>
             <Text style={productCreationStyles.statusTitle}>{t('productCreation.halalStatus')} *</Text>
             <View style={productCreationStyles.statusOptions}>
-              <TouchableOpacity
-                style={[
-                  productCreationStyles.statusOption,
-                  formData.halalStatus === 'halal' && productCreationStyles.statusOptionSelected
-                ]}
-                onPress={() => updateFormData('halalStatus', 'halal')}
-              >
-                <Text style={[
-                  productCreationStyles.statusOptionText,
-                  formData.halalStatus === 'halal' && productCreationStyles.statusOptionTextSelected
-                ]}>
-                  {t('productCreation.halal')}
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[
-                  productCreationStyles.statusOption,
-                  formData.halalStatus === 'haram' && productCreationStyles.statusOptionSelected
-                ]}
-                onPress={() => updateFormData('halalStatus', 'haram')}
-              >
-                <Text style={[
-                  productCreationStyles.statusOptionText,
-                  formData.halalStatus === 'haram' && productCreationStyles.statusOptionTextSelected
-                ]}>
-                  {t('productCreation.haram')}
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[
-                  productCreationStyles.statusOption,
-                  formData.halalStatus === 'suspicious' && productCreationStyles.statusOptionSelected
-                ]}
-                onPress={() => updateFormData('halalStatus', 'suspicious')}
-              >
-                <Text style={[
-                  productCreationStyles.statusOptionText,
-                  formData.halalStatus === 'suspicious' && productCreationStyles.statusOptionTextSelected
-                ]}>
-                  {t('productCreation.suspicious')}
-                </Text>
-              </TouchableOpacity>
+              {(
+                [
+                  { value: 'halal' as const, icon: '✅', labelKey: 'productCreation.halal' },
+                  { value: 'haram' as const, icon: '❌', labelKey: 'productCreation.haram' },
+                  { value: 'suspicious' as const, icon: '⚠️', labelKey: 'productCreation.suspicious' },
+                ]
+              ).map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    productCreationStyles.statusOption,
+                    formData.halalStatus === option.value &&
+                      productCreationStyles.statusOptionSelected,
+                  ]}
+                  onPress={() => updateFormData('halalStatus', option.value)}
+                >
+                  <Text style={productCreationStyles.statusOptionIcon}>{option.icon}</Text>
+                  <Text
+                    style={[
+                      productCreationStyles.statusOptionText,
+                      formData.halalStatus === option.value &&
+                        productCreationStyles.statusOptionTextSelected,
+                    ]}
+                    numberOfLines={2}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.75}
+                  >
+                    {t(option.labelKey)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
             {errors.halalStatus && <Text style={productCreationStyles.errorText}>{errors.halalStatus}</Text>}
           </View>
